@@ -1,0 +1,10 @@
+# Package Coverage
+package-lock.json
+bun.lockb
+
+# SvelteKit
+.svelte-kit/
+build/
+
+# Convex
+convex/_generated/

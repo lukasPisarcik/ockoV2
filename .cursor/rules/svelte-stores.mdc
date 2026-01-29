@@ -1,0 +1,74 @@
+---
+description: Svelte 5 store patterns with runes
+globs: "**/*.svelte.ts"
+alwaysApply: false
+---
+
+# Svelte 5 Store Patterns
+
+## Class-Based Stores with Runes
+
+Stores use Svelte 5 runes (`$state`) in class format:
+
+```typescript
+// src/lib/stores/myStore.svelte.ts
+import { log } from '$lib';
+
+export class MyStore {
+  // Reactive state with $state rune
+  value = $state<string | null>(null);
+  isLoading = $state(false);
+  items = $state<Item[]>([]);
+
+  async init(config: Config) {
+    const initId = crypto.randomUUID();
+    log.info({ initId }, 'Initializing store');
+    
+    this.isLoading = true;
+    try {
+      // ... initialization logic
+      this.value = result;
+    } catch (err) {
+      log.error({ initId, err }, 'Store initialization failed');
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  dispose() {
+    // Clean up resources
+    this.value = null;
+    this.items = [];
+  }
+}
+```
+
+## File Naming
+
+- Store files: `*.svelte.ts` (enables rune syntax)
+- Location: `src/lib/stores/`
+
+## Export Pattern
+
+Add to `src/lib/stores/index.ts`:
+
+```typescript
+export { MyStore } from './myStore.svelte';
+```
+
+## Usage in Components
+
+```svelte
+<script lang="ts">
+  import { MyStore } from '$lib';
+  
+  const store = new MyStore();
+  
+  $effect(() => {
+    store.init(config);
+    return () => store.dispose();
+  });
+</script>
+
+<p>{store.value}</p>
+```

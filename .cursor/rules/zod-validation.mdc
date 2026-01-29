@@ -1,0 +1,62 @@
+---
+description: Zod schema and validation patterns
+globs: "**/*.ts"
+alwaysApply: false
+---
+
+# Zod Validation Patterns
+
+## Schema Definition
+
+Define schemas in `src/lib/schemas/` with type exports:
+
+```typescript
+import z from 'zod';
+
+export const MySchema = z.object({
+  id: z.string(),
+  email: z.email(),
+  createdAt: z.iso.datetime({ offset: true }),
+  optionalField: z.string().optional()
+});
+
+export type MySchema = z.infer<typeof MySchema>;
+```
+
+## Validation Pattern
+
+Always use `safeParse`, never `parse`:
+
+```typescript
+// ✅ GOOD - safe parsing with error handling
+const { success, data, error: err } = MySchema.safeParse(input);
+if (!success) {
+  // handle error
+}
+// use `data` (typed correctly)
+
+// ❌ BAD - throws on invalid input
+const data = MySchema.parse(input);
+```
+
+## Common Zod Types Used
+
+```typescript
+z.string()
+z.email()
+z.url()
+z.iso.datetime({ offset: true })  // ISO datetime strings
+z.enum(['value1', 'value2'])
+z.object({})
+z.array(z.string())
+z.record(z.string(), MySchema)    // For key-value maps
+z.custom<SomeType>()              // For external types
+```
+
+## Export from Barrel File
+
+Add new schemas to `src/lib/schemas/index.ts`:
+
+```typescript
+export * from './myNewSchema';
+```

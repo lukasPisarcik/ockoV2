@@ -1,0 +1,38 @@
+---
+description: Project overview and architecture for video-calling-module
+alwaysApply: true
+---
+
+# Video Calling Module - Project Overview
+
+SvelteKit app using Azure Communication Services (ACS) for video calling, chat, and recording.
+
+## Tech Stack
+- **Framework**: SvelteKit with Svelte 5 (runes)
+- **Runtime**: Deno
+- **Language**: TypeScript with Zod validation
+- **Styling**: Shoelace components
+- **Azure SDKs**: communication-rooms, communication-identity, communication-react, call-automation
+
+## Architecture
+
+```
+src/lib/
+├── schemas/          # Zod schemas (shared types)
+├── stores/           # Svelte 5 class-based stores (*.svelte.ts)
+├── server/
+│   ├── services/     # Business logic (Azure SDK operations)
+│   └── db/           # JSON file database layer
+├── videoConference/  # ACS composite wrappers
+└── utils/            # Shared utilities (logger, formatZodErrors)
+
+src/routes/
+├── api/v1/           # REST API endpoints
+└── meeting/[groupId] # Meeting UI pages
+```
+
+## Key Patterns
+- Use `$lib` alias for imports
+- Export via barrel files (index.ts)
+- Server-only code in `$lib/server`
+- Validate ALL inputs with Zod schemas

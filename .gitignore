@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Build
+.svelte-kit/
+build/
+dist/
+
+# Env files
+.env
+.env.*
+!.env.example
+
+# Lockfiles (using bun)
+package-lock.json
+yarn.lock
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Convex
+convex/_generated/

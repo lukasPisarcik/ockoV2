@@ -1,0 +1,74 @@
+---
+description: SvelteKit API endpoint patterns
+globs: "**/routes/api/**/*.ts"
+alwaysApply: false
+---
+
+# API Endpoint Patterns
+
+## Basic Structure
+
+```typescript
+// src/routes/api/v1/entity/+server.ts
+import { error, json } from '@sveltejs/kit';
+import { formatZodErrors, log, MyRequestSchema } from '$lib';
+import { myService } from '$lib/server';
+
+/**
+ * POST /api/v1/entity
+ * Create a new entity
+ */
+export async function POST(event) {
+  const initId = crypto.randomUUID();
+  log.info({ initId }, 'Creating entity');
+
+  try {
+    const body = await event.request.json();
+
+    // Validate request
+    const { success, data, error: validationErr } = MyRequestSchema.safeParse(body);
+    if (!success) {
+      const errorId = crypto.randomUUID();
+      log.warn({ errorId, validationError: formatZodErrors(validationErr) }, 'Invalid request');
+      error(400, { message: 'Invalid request body', code: 'INVALID_REQUEST', id: errorId });
+    }
+
+    // Call service
+    const result = await myService.create(data);
+
+    log.info({ initId, entityId: result.id }, 'Entity created');
+    return json(result, { status: 201 });
+  } catch (err) {
+    const errorId = crypto.randomUUID();
+    log.error({ errorId, initId, err }, 'Failed to create entity');
+    error(500, { message: 'Internal server error', code: 'INTERNAL_SERVER_ERROR', id: errorId });
+  }
+}
+
+/**
+ * GET /api/v1/entity
+ * List entities
+ */
+export async function GET(event) {
+  // ... similar pattern
+}
+```
+
+## Route Parameters
+
+```typescript
+// src/routes/api/v1/entity/[entityId]/+server.ts
+export async function GET(event) {
+  const entityId = event.params.entityId;
+  // ...
+}
+```
+
+## Response Codes
+
+- `200` - Success (GET, PUT)
+- `201` - Created (POST)
+- `204` - No Content (DELETE)
+- `400` - Bad Request (validation errors)
+- `404` - Not Found
+- `500` - Internal Server Error

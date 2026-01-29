@@ -1,0 +1,58 @@
+---
+description: Logging and error handling conventions
+globs: "**/*.ts"
+alwaysApply: false
+---
+
+# Logging & Error Handling
+
+## Structured Logging Pattern
+
+Always use `initId` for operation tracing and `errorId` for errors:
+
+```typescript
+import { log } from '$lib';
+
+async function someOperation(param: string) {
+  const initId = crypto.randomUUID();
+  log.info({ initId, param }, 'Starting operation');
+
+  try {
+    // ... operation
+    log.info({ initId, result }, 'Operation completed');
+    return result;
+  } catch (err) {
+    const errorId = crypto.randomUUID();
+    log.error({ errorId, initId, err }, 'Operation failed');
+    throw new Error(`Operation failed: ${err instanceof Error ? err.message : String(err)}`);
+  }
+}
+```
+
+## API Error Responses
+
+Use SvelteKit's `error()` with consistent format:
+
+```typescript
+import { error } from '@sveltejs/kit';
+
+// Always include: message, code, id
+error(400, { message: 'Invalid request', code: 'INVALID_REQUEST', id: errorId });
+error(404, { message: 'Not found', code: 'NOT_FOUND', id: errorId });
+error(500, { message: 'Internal error', code: 'INTERNAL_SERVER_ERROR', id: errorId });
+```
+
+## Zod Validation Errors
+
+Use `formatZodErrors` for readable validation errors:
+
+```typescript
+import { formatZodErrors, log } from '$lib';
+
+const { success, data, error: validationErr } = Schema.safeParse(input);
+if (!success) {
+  const errorId = crypto.randomUUID();
+  log.warn({ errorId, validationError: formatZodErrors(validationErr) }, 'Validation failed');
+  error(400, { message: 'Invalid input', code: 'INVALID_REQUEST', id: errorId });
+}
+```

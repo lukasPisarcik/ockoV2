@@ -1,0 +1,81 @@
+---
+description: Server-side service layer patterns
+globs: "**/server/services/**/*.ts"
+alwaysApply: false
+---
+
+# Server Service Patterns
+
+## Service Structure
+
+Services in `src/lib/server/services/` handle business logic and Azure SDK operations.
+
+```typescript
+// src/lib/server/services/myEntity.service.ts
+import { SomeAzureClient } from '@azure/some-sdk';
+import { log, type MyEntity } from '$lib';
+import { myEntityDb, PrivateEnvValue } from '$lib/server';
+
+/**
+ * Get the Azure client (private helper)
+ */
+function getClient(): SomeAzureClient {
+  const connectionString = PrivateEnvValue('AZURE_CS_CONNECTION_STRING');
+  return new SomeAzureClient(connectionString);
+}
+
+/**
+ * Create a new entity
+ * 
+ * @param name - The entity name
+ * @param options - Additional options
+ * @returns The created entity
+ */
+export async function create(
+  name: string,
+  options: CreateOptions = {}
+): Promise<MyEntity> {
+  const initId = crypto.randomUUID();
+  log.info({ initId, name }, 'Creating entity');
+
+  const client = getClient();
+  
+  try {
+    const result = await client.create({ name, ...options });
+    
+    // Save to database
+    myEntityDb.save(result);
+    
+    log.info({ initId, entityId: result.id }, 'Entity created');
+    return result;
+  } catch (err) {
+    const errorId = crypto.randomUUID();
+    log.error({ errorId, initId, err }, 'Failed to create entity');
+    throw new Error(`Failed to create: ${err instanceof Error ? err.message : String(err)}`);
+  }
+}
+
+/**
+ * Get entity by ID
+ */
+export function getById(id: string): MyEntity | null {
+  return myEntityDb.findById(id);
+}
+```
+
+## Export via Barrel
+
+In `src/lib/server/services/index.ts`:
+
+```typescript
+import * as myEntityService from './myEntity.service';
+export { myEntityService };
+```
+
+## Usage
+
+```typescript
+import { myEntityService } from '$lib/server';
+
+const entity = await myEntityService.create('name');
+```

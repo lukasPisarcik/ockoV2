@@ -1,0 +1,64 @@
+---
+description: Import/export conventions
+globs: "**/*.ts"
+alwaysApply: false
+---
+
+# Import & Export Conventions
+
+## Use $lib Alias
+
+Always use `$lib` instead of relative paths:
+
+```typescript
+// ✅ GOOD
+import { log, formatZodErrors, MySchema } from '$lib';
+import { myService, PrivateEnvValue } from '$lib/server';
+
+// ❌ BAD
+import { log } from '../../../utils/logger';
+import { myService } from '../../server/services/myService';
+```
+
+## Barrel Files
+
+Each module has an `index.ts` that re-exports:
+
+```typescript
+// src/lib/schemas/index.ts
+export * from './meeting';
+export * from './recording';
+export * from './myNewSchema';  // Add new schemas here
+
+// src/lib/server/services/index.ts
+import * as meetingService from './meeting.service';
+import * as recordingService from './recording.service';
+export { meetingService, recordingService };
+```
+
+## Import Order
+
+1. External packages
+2. `$lib` imports
+3. `$lib/server` imports (in server files)
+4. Relative imports (rare, avoid when possible)
+
+```typescript
+// External
+import { json, error } from '@sveltejs/kit';
+import { RoomsClient } from '@azure/communication-rooms';
+
+// $lib
+import { log, formatZodErrors, type Meeting } from '$lib';
+
+// $lib/server
+import { meetingService, PrivateEnvValue } from '$lib/server';
+```
+
+## Type Imports
+
+Use `type` keyword for type-only imports:
+
+```typescript
+import { log, type Meeting, type StoredRecording } from '$lib';
+```

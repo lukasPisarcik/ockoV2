@@ -1,0 +1,49 @@
+---
+description: Environment variable handling
+globs: "**/env.server.ts"
+alwaysApply: false
+---
+
+# Environment Variables
+
+## Schema Definition
+
+Define env schemas in `src/lib/server/env.server.ts`:
+
+```typescript
+import { z } from 'zod';
+
+const PrivateEnvSchema = z.object({
+  AZURE_CS_CONNECTION_STRING: z.string(),
+  SOME_OPTIONAL_VAR: z.string().optional(),
+  VAR_WITH_DEFAULT: z.string().default('default-value')
+});
+
+const PublicEnvSchema = z.object({
+  PUBLIC_API_URL: z.url().default('http://localhost:5173')
+});
+```
+
+## Adding New Variables
+
+1. Add to schema in `env.server.ts`
+2. Add to `.env.example` with example/placeholder value
+3. Use typed getter:
+
+```typescript
+import { PrivateEnvValue, PublicEnvValue } from '$lib/server';
+
+// Private (server-only)
+const connectionString = PrivateEnvValue('AZURE_CS_CONNECTION_STRING');
+
+// Public (can be exposed to client)
+const apiUrl = PublicEnvValue('PUBLIC_API_URL');
+```
+
+## Conventions
+
+- Private vars: No prefix (server-only)
+- Public vars: `PUBLIC_` prefix (SvelteKit convention)
+- Azure vars: `AZURE_` prefix
+- Always validate with Zod
+- Provide sensible defaults where appropriate
