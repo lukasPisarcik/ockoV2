@@ -8,7 +8,7 @@
 	import { getI18n } from '$lib/i18n';
 	import { getUser } from '$lib/stores';
 	import { getConvexClient } from '$lib/convex';
-	import { api } from '../../../convex/_generated/api';
+	import { api } from '@convex/_generated/api';
 	import { log } from '$lib/utils';
 
 	const i18n = getI18n();

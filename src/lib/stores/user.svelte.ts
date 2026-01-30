@@ -1,6 +1,6 @@
 import { getConvexClient } from '$lib/convex';
-import { api } from '../../../convex/_generated/api';
-import type { Id } from '../../../convex/_generated/dataModel';
+import { api } from '@convex/_generated/api';
+import type { Id } from '@convex/_generated/dataModel';
 import { log } from '$lib/utils';
 import { getContext, setContext } from 'svelte';
 

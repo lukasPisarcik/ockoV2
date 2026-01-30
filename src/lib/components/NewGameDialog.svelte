@@ -12,7 +12,7 @@
 	import { getI18n } from '$lib/i18n';
 	import { getUser } from '$lib/stores';
 	import { getConvexClient } from '$lib/convex';
-	import { api } from '../../../convex/_generated/api';
+	import { api } from '@convex/_generated/api';
 	import { X, Plus, AlertCircle, Loader2 } from 'lucide-svelte';
 
 	type Props = {

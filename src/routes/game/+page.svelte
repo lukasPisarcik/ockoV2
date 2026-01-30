@@ -10,9 +10,9 @@
 	import NewGameDialog from '$lib/components/NewGameDialog.svelte';
 	import { GameStore, getUser } from '$lib/stores';
 	import { getConvexClient } from '$lib/convex';
-	import { api } from '../../../convex/_generated/api';
+	import { api } from '@convex/_generated/api';
 	import type { MemeType } from '$lib/schemas';
-	import type { Id } from '../../../convex/_generated/dataModel';
+	import type { Id } from '@convex/_generated/dataModel';
 	import { RotateCcw, Settings, Loader2 } from 'lucide-svelte';
 	import { log } from '$lib/utils';
 	import { getI18n } from '$lib/i18n';
