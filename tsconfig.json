@@ -9,9 +9,6 @@
 		"skipLibCheck": true,
 		"sourceMap": true,
 		"strict": true,
-		"moduleResolution": "bundler",
-		"paths": {
-			"@convex/*": ["./convex/*"]
-		}
+		"moduleResolution": "bundler"
 	}
 }
