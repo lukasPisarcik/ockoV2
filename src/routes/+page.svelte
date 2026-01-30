@@ -14,8 +14,8 @@
 	let showNewGameDialog = $state(false);
 	let copied = $state(false);
 
-	// Show welcome dialog if user has no name set
-	let showWelcomeDialog = $derived(user.isReady && !user.userName);
+	// Show welcome dialog if user is initialized but has no name
+	let showWelcomeDialog = $derived(user.isInitialized && !user.userName);
 
 	const IBAN = 'CZ3555000000005503226004';
 

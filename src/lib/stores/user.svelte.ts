@@ -29,7 +29,7 @@ export class UserStore {
 	private readonly DEVICE_ID_KEY = 'ocko_device_id';
 
 	/**
-	 * Initialize store - gets or creates user based on deviceId
+	 * Initialize store - checks for existing user, doesn't create new one
 	 */
 	async init() {
 		if (this.isInitialized) return;
@@ -55,13 +55,15 @@ export class UserStore {
 
 			this.deviceId = deviceId;
 
-			// Get or create user in Convex
-			const user = await convex.mutation(api.users.getOrCreateByDeviceId, { deviceId });
+			// Check if user already exists (don't create yet)
+			const existingUser = await convex.query(api.users.getByDeviceId, { deviceId });
 
-			if (user) {
-				this.userId = user._id;
-				this.userName = user.name ?? null;
-				log.info({ initId, userId: user._id, userName: user.name }, 'UserStore: User loaded');
+			if (existingUser) {
+				this.userId = existingUser._id;
+				this.userName = existingUser.name ?? null;
+				log.info({ initId, userId: existingUser._id, userName: existingUser.name }, 'UserStore: User loaded');
+			} else {
+				log.info({ initId, deviceId }, 'UserStore: No existing user, waiting for name');
 			}
 
 			this.isInitialized = true;
@@ -73,27 +75,39 @@ export class UserStore {
 	}
 
 	/**
-	 * Update user's display name
+	 * Set user's name - creates user if doesn't exist, updates if exists
 	 */
 	async setName(name: string) {
-		if (!this.userId) return;
-
 		const convex = getConvexClient();
-		if (!convex) return;
+		if (!convex || !this.deviceId) return;
 
 		const initId = crypto.randomUUID();
-		log.info({ initId, name }, 'UserStore: Updating name');
+		log.info({ initId, name }, 'UserStore: Setting name');
 
 		try {
-			const user = await convex.mutation(api.users.updateName, {
-				id: this.userId,
-				name
-			});
-			if (user) {
-				this.userName = user.name ?? null;
+			if (this.userId) {
+				// User exists, just update name
+				const user = await convex.mutation(api.users.updateName, {
+					id: this.userId,
+					name
+				});
+				if (user) {
+					this.userName = user.name ?? null;
+				}
+			} else {
+				// Create new user with name
+				const user = await convex.mutation(api.users.getOrCreateByDeviceId, {
+					deviceId: this.deviceId,
+					name
+				});
+				if (user) {
+					this.userId = user._id;
+					this.userName = user.name ?? null;
+					log.info({ initId, userId: user._id }, 'UserStore: User created');
+				}
 			}
 		} catch (error) {
-			log.error({ initId, error }, 'UserStore: Failed to update name');
+			log.error({ initId, error }, 'UserStore: Failed to set name');
 		}
 	}
 
