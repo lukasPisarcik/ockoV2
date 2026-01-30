@@ -49,7 +49,7 @@
 
 <Drawer.Root bind:open dismissible={false} onOpenChange={(isOpen) => { if (!isOpen && !user.userName) open = true; }}>
 	<Drawer.Content>
-		<div class="mx-auto w-full max-w-sm">
+		<div class="mx-auto w-full max-w-sm pb-safe">
 			<Drawer.Header class="text-center">
 				<Drawer.Title class="text-2xl">{i18n.t.welcome.title}</Drawer.Title>
 				<Drawer.Description>
@@ -57,7 +57,7 @@
 				</Drawer.Description>
 			</Drawer.Header>
 
-			<div class="px-4 py-6">
+			<div class="px-4 py-4">
 				{#if error}
 					<div class="rounded-md bg-destructive/10 p-3 text-sm text-destructive mb-4">
 						{error}
@@ -78,7 +78,7 @@
 				</div>
 			</div>
 
-			<Drawer.Footer>
+			<Drawer.Footer class="pb-6">
 				<Button onclick={handleSubmit} disabled={isSubmitting} class="w-full">
 					{#if isSubmitting}
 						<Loader2 class="h-4 w-4 mr-2 animate-spin" />

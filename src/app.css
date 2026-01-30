@@ -78,3 +78,31 @@ body {
 html {
 	transition: background-color 0.2s ease, color 0.2s ease;
 }
+
+/* Fix mobile keyboard issues with drawers/modals */
+html, body {
+	height: 100%;
+	overflow: hidden;
+}
+
+body {
+	overflow: auto;
+	-webkit-overflow-scrolling: touch;
+}
+
+/* Prevent layout shift when virtual keyboard appears */
+@supports (height: 100dvh) {
+	html, body {
+		height: 100dvh;
+	}
+}
+
+/* Vaul drawer mobile keyboard fixes */
+[vaul-drawer] {
+	max-height: 85dvh !important;
+	overflow-y: auto;
+}
+
+[vaul-drawer-content] {
+	max-height: 85dvh;
+}
