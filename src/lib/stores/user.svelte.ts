@@ -27,7 +27,6 @@ export class UserStore {
 	isInitialized = $state(false);
 
 	private readonly DEVICE_ID_KEY = 'ocko_device_id';
-	private convex = getConvexClient();
 
 	/**
 	 * Initialize store - gets or creates user based on deviceId
@@ -38,7 +37,8 @@ export class UserStore {
 		const initId = crypto.randomUUID();
 		log.info({ initId }, 'UserStore: Initializing');
 
-		if (typeof window === 'undefined') return;
+		const convex = getConvexClient();
+		if (!convex) return; // SSR - skip
 
 		this.isLoading = true;
 
@@ -56,7 +56,7 @@ export class UserStore {
 			this.deviceId = deviceId;
 
 			// Get or create user in Convex
-			const user = await this.convex.mutation(api.users.getOrCreateByDeviceId, { deviceId });
+			const user = await convex.mutation(api.users.getOrCreateByDeviceId, { deviceId });
 
 			if (user) {
 				this.userId = user._id;
@@ -78,11 +78,14 @@ export class UserStore {
 	async setName(name: string) {
 		if (!this.userId) return;
 
+		const convex = getConvexClient();
+		if (!convex) return;
+
 		const initId = crypto.randomUUID();
 		log.info({ initId, name }, 'UserStore: Updating name');
 
 		try {
-			const user = await this.convex.mutation(api.users.updateName, {
+			const user = await convex.mutation(api.users.updateName, {
 				id: this.userId,
 				name
 			});

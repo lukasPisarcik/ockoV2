@@ -1,1 +1,0 @@
-import{a as o,f as p}from"./tMkB11FQ.js";import{p as m,d as n,n as c,r as d,t as f,c as i}from"./BqiDTyks.js";import{s as l,a as u,b as h,e as x}from"./B6_SBkSS.js";var _=p("<p><!></p>");function g(t,s){m(s,!0);var a=_(),e=n(a);l(e,()=>s.children??c),d(a),f(r=>x(a,1,r),[()=>u(h("text-sm text-muted-foreground",s.class))]),o(t,a),i()}export{g as C};

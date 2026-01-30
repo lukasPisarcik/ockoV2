@@ -16,7 +16,6 @@
 
 	const i18n = getI18n();
 	const user = getUser();
-	const convex = getConvexClient();
 
 	let games = $state<GameWithPlayers[]>([]);
 	let isLoading = $state(true);
@@ -172,6 +171,9 @@
 
 	function loadGames() {
 		if (!user.userId) return;
+
+		const convex = getConvexClient();
+		if (!convex) return;
 
 		unsubscribe = convex.onUpdate(api.games.listByUser, { userId: user.userId }, (result) => {
 			games = (result || []).map(g => ({

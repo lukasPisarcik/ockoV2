@@ -20,7 +20,6 @@
 	const gameStore = new GameStore();
 	const i18n = getI18n();
 	const user = getUser();
-	const convex = getConvexClient();
 
 	let showEditDialog = $state(false);
 	let showMemePopup = $state(false);
@@ -54,6 +53,9 @@
 	});
 
 	async function loadActiveGame(userId: Id<'users'>) {
+		const convex = getConvexClient();
+		if (!convex) return;
+
 		const initId = crypto.randomUUID();
 		log.info({ initId, userId }, 'GamePage: Loading active game');
 
@@ -79,6 +81,9 @@
 	}
 
 	async function handleUpdatePlayerValue(playerId: string, newValue: number) {
+		const convex = getConvexClient();
+		if (!convex) return;
+
 		const initId = crypto.randomUUID();
 		log.info({ initId, playerId, newValue }, 'GamePage: Updating player value');
 
@@ -104,6 +109,9 @@
 
 	async function handleReset() {
 		if (!gameStore.game) return;
+
+		const convex = getConvexClient();
+		if (!convex) return;
 
 		const initId = crypto.randomUUID();
 		log.info({ initId }, 'GamePage: Resetting game');

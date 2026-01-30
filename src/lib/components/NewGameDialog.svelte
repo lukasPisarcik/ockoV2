@@ -34,9 +34,7 @@
 	}: Props = $props();
 
 	const i18n = getI18n();
-
 	const user = getUser();
-	const convex = getConvexClient();
 
 	let bank = $state<number | ''>('');
 	let playerName = $state('');
@@ -103,6 +101,12 @@
 		// Create game via Convex
 		if (!user.userId) {
 			error = 'User not initialized';
+			return;
+		}
+
+		const convex = getConvexClient();
+		if (!convex) {
+			error = 'Not ready';
 			return;
 		}
 
