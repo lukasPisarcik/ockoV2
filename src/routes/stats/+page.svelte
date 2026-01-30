@@ -1,162 +1,201 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
+	import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '$lib/components/ui/table';
+	import { Badge } from '$lib/components/ui/badge';
 	import type { GameWithPlayers } from '$lib/schemas';
-	import { Chart, registerables } from 'chart.js';
-	import { TrendingUp, TrendingDown, Gamepad2, DollarSign } from 'lucide-svelte';
+	import { Gamepad2, Users, Coins, Trophy, TrendingUp, Loader2 } from 'lucide-svelte';
 	import { getI18n } from '$lib/i18n';
-
-	Chart.register(...registerables);
+	import { getUser } from '$lib/stores';
+	import { getConvexClient } from '$lib/convex';
+	import { api } from '../../../convex/_generated/api';
+	import { log } from '$lib/utils';
+	import { Chart, Svg, Axis, Spline, Highlight, Points } from 'layerchart';
+	import { scaleOrdinal } from 'd3-scale';
+	import { flatGroup } from 'd3-array';
 
 	const i18n = getI18n();
+	const user = getUser();
+	const convex = getConvexClient();
 
 	let games = $state<GameWithPlayers[]>([]);
-	let spendingChartCanvas = $state<HTMLCanvasElement | null>(null);
-	let winLossChartCanvas = $state<HTMLCanvasElement | null>(null);
-	let spendingChart: Chart | null = null;
-	let winLossChart: Chart | null = null;
+	let isLoading = $state(true);
+	let unsubscribe: (() => void) | null = null;
+
+	// Player stats aggregated across all games
+	type PlayerStats = {
+		name: string;
+		gamesPlayed: number;
+		totalBalance: number;
+		avgPerGame: number;
+	};
+
+	let playerStats = $derived(() => {
+		const statsMap = new Map<string, { gamesPlayed: number; totalBalance: number }>();
+
+		for (const game of games) {
+			for (const player of game.players) {
+				const existing = statsMap.get(player.name) || { gamesPlayed: 0, totalBalance: 0 };
+				statsMap.set(player.name, {
+					gamesPlayed: existing.gamesPlayed + 1,
+					totalBalance: existing.totalBalance + player.value
+				});
+			}
+		}
+
+		const stats: PlayerStats[] = [];
+		for (const [name, data] of statsMap) {
+			stats.push({
+				name,
+				gamesPlayed: data.gamesPlayed,
+				totalBalance: data.totalBalance,
+				avgPerGame: data.gamesPlayed > 0 ? Math.round(data.totalBalance / data.gamesPlayed) : 0
+			});
+		}
+
+		// Sort by total balance descending
+		return stats.sort((a, b) => b.totalBalance - a.totalBalance);
+	});
+
+	// Chart colors
+	const chartColors = [
+		'hsl(221, 83%, 53%)', // blue
+		'hsl(142, 76%, 36%)', // green
+		'hsl(262, 83%, 58%)', // purple
+		'hsl(24, 95%, 53%)',  // orange
+		'hsl(339, 90%, 51%)', // pink
+		'hsl(173, 80%, 40%)', // teal
+		'hsl(47, 96%, 53%)',  // yellow
+		'hsl(0, 84%, 60%)',   // red
+	];
+
+	// Historical balance data for line chart
+	let historicalData = $derived(() => {
+		// Sort games by date (oldest first)
+		const sortedGames = [...games].sort((a, b) => {
+			const dateA = a.startedAt || 0;
+			const dateB = b.startedAt || 0;
+			return dateA - dateB;
+		});
+
+		// Track cumulative balance for each player
+		const cumulativeBalances = new Map<string, number>();
+		const dataPoints: { gameIndex: number; player: string; balance: number }[] = [];
+
+		// Add starting point (0) for all players
+		const allPlayers = new Set<string>();
+		for (const game of sortedGames) {
+			for (const player of game.players) {
+				allPlayers.add(player.name);
+			}
+		}
+
+		// Initialize all players at 0
+		for (const playerName of allPlayers) {
+			cumulativeBalances.set(playerName, 0);
+			dataPoints.push({ gameIndex: 0, player: playerName, balance: 0 });
+		}
+
+		// Build cumulative data
+		sortedGames.forEach((game, index) => {
+			const gameIndex = index + 1;
+			
+			// Update balances for players in this game
+			for (const player of game.players) {
+				const current = cumulativeBalances.get(player.name) || 0;
+				cumulativeBalances.set(player.name, current + player.value);
+			}
+
+			// Add data point for each player at this game
+			for (const playerName of allPlayers) {
+				dataPoints.push({
+					gameIndex,
+					player: playerName,
+					balance: cumulativeBalances.get(playerName) || 0
+				});
+			}
+		});
+
+		return dataPoints;
+	});
+
+	// Get unique players for the legend
+	let uniquePlayers = $derived(() => {
+		const players = new Set<string>();
+		for (const game of games) {
+			for (const player of game.players) {
+				players.add(player.name);
+			}
+		}
+		return Array.from(players);
+	});
+
+	// Color scale for players
+	let colorScale = $derived(() => {
+		return scaleOrdinal<string>()
+			.domain(uniquePlayers())
+			.range(chartColors);
+	});
 
 	// Computed stats
 	let totalGames = $derived(games.length);
-	let totalSpent = $derived(
+	let totalPlayers = $derived(playerStats().length);
+	let totalMoneyMoved = $derived(
 		games.reduce((sum, game) => {
-			const playerTotal = game.players.reduce((s, p) => s + p.value, 0);
-			return sum + (playerTotal < 0 ? Math.abs(playerTotal) : 0);
+			return sum + game.players.reduce((s, p) => s + Math.abs(p.value), 0);
 		}, 0)
 	);
-	let totalWon = $derived(
-		games.reduce((sum, game) => {
-			const playerTotal = game.players.reduce((s, p) => s + p.value, 0);
-			return sum + (playerTotal > 0 ? playerTotal : 0);
-		}, 0)
-	);
-	let netResult = $derived(totalWon - totalSpent);
 
 	onMount(() => {
-		// Load games history
-		const historyData = localStorage.getItem('ocko_game_history');
-		if (historyData) {
-			try {
-				games = JSON.parse(historyData);
-			} catch (e) {
-				console.error('Failed to load game history', e);
-			}
-		}
+		const initId = crypto.randomUUID();
+		log.info({ initId }, 'StatsPage: Mounting');
 
-		const currentGame = localStorage.getItem('ocko_current_game');
-		if (currentGame) {
-			try {
-				const game = JSON.parse(currentGame);
-				if (!games.some((g) => g._id === game._id)) {
-					games = [game, ...games];
-				}
-			} catch (e) {
-				console.error('Failed to load current game', e);
+		// Wait for user to be ready, then load games
+		const checkUser = setInterval(() => {
+			if (user.isReady && user.userId) {
+				clearInterval(checkUser);
+				loadGames();
 			}
-		}
+		}, 100);
+
+		// Timeout after 5 seconds
+		setTimeout(() => {
+			clearInterval(checkUser);
+			isLoading = false;
+		}, 5000);
 
 		return () => {
-			spendingChart?.destroy();
-			winLossChart?.destroy();
+			clearInterval(checkUser);
+			if (unsubscribe) unsubscribe();
 		};
 	});
 
-	// Create charts when data is loaded and canvas is ready
-	$effect(() => {
-		if (spendingChartCanvas && games.length > 0) {
-			spendingChart?.destroy();
+	function loadGames() {
+		if (!user.userId) return;
 
-			const locale = i18n.language === 'sk' ? 'sk-SK' : 'en-US';
-
-			// Prepare data for spending over time
-			const sortedGames = [...games].sort((a, b) => a.startedAt - b.startedAt);
-			const labels = sortedGames.map((g) =>
-				new Date(g.startedAt).toLocaleDateString(locale, { day: 'numeric', month: 'short' })
-			);
-			const cumulativeSpending = sortedGames.reduce<number[]>((acc, game) => {
-				const playerTotal = game.players.reduce((s, p) => s + p.value, 0);
-				const lastValue = acc.length > 0 ? acc[acc.length - 1] : 0;
-				acc.push(lastValue + playerTotal);
-				return acc;
-			}, []);
-
-			spendingChart = new Chart(spendingChartCanvas, {
-				type: 'line',
-				data: {
-					labels,
-					datasets: [
-						{
-							label: i18n.t.stats.cumulativeResult,
-							data: cumulativeSpending,
-							borderColor: 'hsl(221.2 83.2% 53.3%)',
-							backgroundColor: 'hsl(221.2 83.2% 53.3% / 0.1)',
-							fill: true,
-							tension: 0.3
-						}
-					]
-				},
-				options: {
-					responsive: true,
-					plugins: {
-						legend: {
-							display: false
-						}
-					},
-					scales: {
-						y: {
-							beginAtZero: true,
-							title: {
-								display: true,
-								text: i18n.t.stats.result
-							}
-						}
-					}
-				}
-			});
-		}
-	});
-
-	$effect(() => {
-		if (winLossChartCanvas && games.length > 0) {
-			winLossChart?.destroy();
-
-			const wins = games.filter((g) => g.players.reduce((s, p) => s + p.value, 0) > 0).length;
-			const losses = games.filter((g) => g.players.reduce((s, p) => s + p.value, 0) < 0).length;
-			const draws = games.filter((g) => g.players.reduce((s, p) => s + p.value, 0) === 0).length;
-
-			winLossChart = new Chart(winLossChartCanvas, {
-				type: 'doughnut',
-				data: {
-					labels: [i18n.t.stats.wins, i18n.t.stats.losses, i18n.t.stats.draws],
-					datasets: [
-						{
-							data: [wins, losses, draws],
-							backgroundColor: [
-								'hsl(142.1 76.2% 36.3%)',
-								'hsl(0 84.2% 60.2%)',
-								'hsl(217.2 32.6% 50%)'
-							]
-						}
-					]
-				},
-				options: {
-					responsive: true,
-					plugins: {
-						legend: {
-							position: 'bottom'
-						}
-					}
-				}
-			});
-		}
-	});
+		unsubscribe = convex.onUpdate(api.games.listByUser, { userId: user.userId }, (result) => {
+			games = (result || []).map(g => ({
+				...g,
+				enableMemes: g.enableMemes ?? true
+			}));
+			isLoading = false;
+		});
+	}
 </script>
 
 <div class="space-y-6">
 	<h1 class="text-2xl font-bold">{i18n.t.stats.title}</h1>
 
+	{#if isLoading}
+		<Card class="text-center py-12">
+			<CardContent class="flex flex-col items-center gap-4">
+				<Loader2 class="h-8 w-8 animate-spin text-muted-foreground" />
+				<p class="text-muted-foreground">{i18n.t.common.loading}</p>
+			</CardContent>
+		</Card>
+	{:else}
 	<!-- Summary Cards -->
-	<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+	<div class="grid gap-4 sm:grid-cols-3">
 		<Card>
 			<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
 				<CardTitle class="text-sm font-medium">{i18n.t.stats.totalGames}</CardTitle>
@@ -169,66 +208,137 @@
 
 		<Card>
 			<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-				<CardTitle class="text-sm font-medium">{i18n.t.stats.totalWon}</CardTitle>
-				<TrendingUp class="h-4 w-4 text-green-600" />
+				<CardTitle class="text-sm font-medium">{i18n.t.stats.totalPlayers}</CardTitle>
+				<Users class="h-4 w-4 text-muted-foreground" />
 			</CardHeader>
 			<CardContent>
-				<div class="text-2xl font-bold text-green-600">+{totalWon}€</div>
+				<div class="text-2xl font-bold">{totalPlayers}</div>
 			</CardContent>
 		</Card>
 
 		<Card>
 			<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-				<CardTitle class="text-sm font-medium">{i18n.t.stats.totalLost}</CardTitle>
-				<TrendingDown class="h-4 w-4 text-red-600" />
+				<CardTitle class="text-sm font-medium">{i18n.t.stats.totalMoneyMoved}</CardTitle>
+				<Coins class="h-4 w-4 text-muted-foreground" />
 			</CardHeader>
 			<CardContent>
-				<div class="text-2xl font-bold text-red-600">-{totalSpent}€</div>
-			</CardContent>
-		</Card>
-
-		<Card>
-			<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-				<CardTitle class="text-sm font-medium">{i18n.t.stats.netResult}</CardTitle>
-				<DollarSign class="h-4 w-4 text-muted-foreground" />
-			</CardHeader>
-			<CardContent>
-				<div
-					class="text-2xl font-bold"
-					class:text-green-600={netResult > 0}
-					class:text-red-600={netResult < 0}
-				>
-					{netResult >= 0 ? '+' : ''}{netResult}€
-				</div>
+				<div class="text-2xl font-bold">{totalMoneyMoved}€</div>
 			</CardContent>
 		</Card>
 	</div>
 
-	<!-- Charts -->
-	{#if games.length > 0}
-		<div class="grid gap-6 lg:grid-cols-2">
+	{#if playerStats().length > 0}
+		<!-- Player Leaderboard -->
+		<Card>
+			<CardHeader>
+				<CardTitle class="flex items-center gap-2">
+					<Trophy class="h-5 w-5" />
+					{i18n.t.stats.playerLeaderboard}
+				</CardTitle>
+				<CardDescription>{i18n.t.stats.allPlayersStats}</CardDescription>
+			</CardHeader>
+			<CardContent>
+				<Table>
+					<TableHeader>
+						<TableRow>
+							<TableHead class="w-12">{i18n.t.stats.rank}</TableHead>
+							<TableHead>{i18n.t.stats.player}</TableHead>
+							<TableHead class="text-center">{i18n.t.stats.gamesPlayed}</TableHead>
+							<TableHead class="text-right">{i18n.t.stats.balance}</TableHead>
+							<TableHead class="text-right">{i18n.t.stats.avgPerGame}</TableHead>
+						</TableRow>
+					</TableHeader>
+					<TableBody>
+						{#each playerStats() as player, index}
+							<TableRow>
+								<TableCell class="font-medium">
+									{#if index === 0}
+										<Badge variant="default">1</Badge>
+									{:else if index === 1}
+										<Badge variant="secondary">2</Badge>
+									{:else if index === 2}
+										<Badge variant="outline">3</Badge>
+									{:else}
+										<span class="text-muted-foreground">{index + 1}</span>
+									{/if}
+								</TableCell>
+								<TableCell class="font-medium">{player.name}</TableCell>
+								<TableCell class="text-center">{player.gamesPlayed}</TableCell>
+								<TableCell class="text-right">
+									<span
+										class:text-green-600={player.totalBalance > 0}
+										class:text-red-600={player.totalBalance < 0}
+									>
+										{player.totalBalance >= 0 ? '+' : ''}{player.totalBalance}€
+									</span>
+								</TableCell>
+								<TableCell class="text-right">
+									<span class="text-muted-foreground">
+										{player.avgPerGame >= 0 ? '+' : ''}{player.avgPerGame}€
+									</span>
+								</TableCell>
+							</TableRow>
+						{/each}
+					</TableBody>
+				</Table>
+			</CardContent>
+		</Card>
+
+		<!-- Historical Balance Chart -->
+		{#if games.length > 0}
 			<Card>
 				<CardHeader>
-					<CardTitle>{i18n.t.stats.resultsOverTime}</CardTitle>
-					<CardDescription>{i18n.t.stats.cumulativeProgress}</CardDescription>
+					<CardTitle class="flex items-center gap-2">
+						<TrendingUp class="h-5 w-5" />
+						{i18n.t.stats.balanceChart}
+					</CardTitle>
+					<CardDescription>{i18n.t.stats.balanceChartDesc}</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<canvas bind:this={spendingChartCanvas}></canvas>
-				</CardContent>
-			</Card>
-
-			<Card>
-				<CardHeader>
-					<CardTitle>{i18n.t.stats.winLossRatio}</CardTitle>
-					<CardDescription>{i18n.t.stats.gameResultsDistribution}</CardDescription>
-				</CardHeader>
-				<CardContent class="flex justify-center">
-					<div class="w-64 h-64">
-						<canvas bind:this={winLossChartCanvas}></canvas>
+					<div class="h-[300px] w-full chart-container">
+						<Chart
+							data={historicalData()}
+							x="gameIndex"
+							y="balance"
+							yDomain={[null, null]}
+							yNice
+							padding={{ left: 48, bottom: 30, right: 16, top: 16 }}
+						>
+							<Svg>
+								<Axis placement="left" grid rule format={(v: number) => `${v}€`} />
+								<Axis placement="bottom" format={(v: number) => v === 0 ? 'Start' : `#${v}`} />
+								{#each flatGroup(historicalData(), (d: { gameIndex: number; player: string; balance: number }) => d.player) as [player, data]}
+									<Spline
+										{data}
+										stroke={colorScale()(player)}
+										strokeWidth={2}
+									/>
+									<Points
+										{data}
+										r={4}
+										fill={colorScale()(player)}
+										class="opacity-0 hover:opacity-100"
+									/>
+								{/each}
+								<Highlight points lines />
+							</Svg>
+						</Chart>
+					</div>
+					<!-- Legend -->
+					<div class="flex flex-wrap gap-4 mt-4 justify-center">
+						{#each uniquePlayers() as player}
+							<div class="flex items-center gap-2">
+								<div
+									class="h-3 w-3 rounded-full"
+									style="background-color: {colorScale()(player)}"
+								></div>
+								<span class="text-sm">{player}</span>
+							</div>
+						{/each}
 					</div>
 				</CardContent>
 			</Card>
-		</div>
+		{/if}
 	{:else}
 		<Card class="text-center py-12">
 			<CardContent>
@@ -238,4 +348,19 @@
 			</CardContent>
 		</Card>
 	{/if}
+	{/if}
 </div>
+
+<style>
+	.chart-container :global(svg) {
+		shape-rendering: crispEdges;
+	}
+	.chart-container :global(text) {
+		text-rendering: optimizeLegibility;
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+	}
+	.chart-container :global(.spline) {
+		shape-rendering: geometricPrecision;
+	}
+</style>

@@ -8,117 +8,119 @@
 	import PlayerCard from '$lib/components/PlayerCard.svelte';
 	import MemePopup from '$lib/components/MemePopup.svelte';
 	import NewGameDialog from '$lib/components/NewGameDialog.svelte';
-	import { GameStore } from '$lib/stores';
-	import type { MemeType, GameWithPlayers } from '$lib/schemas';
-	import { RotateCcw, Settings } from 'lucide-svelte';
+	import { GameStore, getUser } from '$lib/stores';
+	import { getConvexClient } from '$lib/convex';
+	import { api } from '../../../convex/_generated/api';
+	import type { MemeType } from '$lib/schemas';
+	import type { Id } from '../../../convex/_generated/dataModel';
+	import { RotateCcw, Settings, Loader2 } from 'lucide-svelte';
 	import { log } from '$lib/utils';
 	import { getI18n } from '$lib/i18n';
 
 	const gameStore = new GameStore();
 	const i18n = getI18n();
+	const user = getUser();
+	const convex = getConvexClient();
 
 	let showEditDialog = $state(false);
 	let showMemePopup = $state(false);
 	let currentMeme = $state<MemeType>('BANK');
+	let isLoading = $state(true);
+	let unsubscribe: (() => void) | null = null;
 
 	onMount(() => {
 		const initId = crypto.randomUUID();
 		log.info({ initId }, 'GamePage: Mounting');
 
-		// Try to load game from sessionStorage (new game)
-		const newGameData = sessionStorage.getItem('ocko_new_game');
-		if (newGameData) {
-			try {
-				const { initialBank, playerNames } = JSON.parse(newGameData);
-				const game: GameWithPlayers = {
-					_id: crypto.randomUUID(),
-					userId: 'local',
-					initialBank,
-					currentBank: initialBank,
-					startedAt: Date.now(),
-					isActive: true,
-					players: playerNames.map((name: string, index: number) => ({
-						_id: crypto.randomUUID(),
-						gameId: 'local',
-						name,
-						value: 0,
-						position: index
-					}))
-				};
-				gameStore.init(game);
-				sessionStorage.removeItem('ocko_new_game');
+		// Wait for user to be ready, then load active game
+		const checkUser = setInterval(() => {
+			if (user.isReady && user.userId) {
+				clearInterval(checkUser);
+				loadActiveGame(user.userId);
+			}
+		}, 100);
 
-				// Save to localStorage for persistence
-				localStorage.setItem('ocko_current_game', JSON.stringify(game));
-			} catch (e) {
-				log.error({ initId, error: e }, 'GamePage: Failed to parse new game data');
-			}
-		} else {
-			// Try to load from localStorage (continue game)
-			const savedGame = localStorage.getItem('ocko_current_game');
-			if (savedGame) {
-				try {
-					const game = JSON.parse(savedGame);
-					gameStore.init(game);
-				} catch (e) {
-					log.error({ initId, error: e }, 'GamePage: Failed to parse saved game');
-				}
-			}
-		}
+		// Timeout after 5 seconds
+		setTimeout(() => {
+			clearInterval(checkUser);
+			isLoading = false;
+		}, 5000);
 
 		return () => {
+			clearInterval(checkUser);
+			if (unsubscribe) unsubscribe();
 			gameStore.dispose();
 		};
 	});
 
-	function handleUpdatePlayerValue(playerId: string, newValue: number) {
-		gameStore.updatePlayerValue(playerId, newValue);
+	async function loadActiveGame(userId: Id<'users'>) {
+		const initId = crypto.randomUUID();
+		log.info({ initId, userId }, 'GamePage: Loading active game');
 
-		// Save to localStorage
-		if (gameStore.game) {
-			localStorage.setItem('ocko_current_game', JSON.stringify(gameStore.game));
-		}
+		// Subscribe to active game updates
+		unsubscribe = convex.onUpdate(api.games.getActive, { userId }, (game) => {
+			log.info({ initId, gameId: game?._id }, 'GamePage: Game updated');
+			if (game) {
+				gameStore.init({
+					...game,
+					enableMemes: game.enableMemes ?? true
+				});
+			} else {
+				gameStore.setGame(null);
+			}
+			isLoading = false;
+
+			// Check for meme conditions after update
+			if (gameStore.showMeme) {
+				currentMeme = gameStore.memeType;
+				showMemePopup = true;
+			}
+		});
+	}
+
+	async function handleUpdatePlayerValue(playerId: string, newValue: number) {
+		const initId = crypto.randomUUID();
+		log.info({ initId, playerId, newValue }, 'GamePage: Updating player value');
+
+		// Optimistic update
+		gameStore.updatePlayerValue(playerId, newValue);
 
 		// Check for meme conditions
 		if (gameStore.showMeme) {
 			currentMeme = gameStore.memeType;
 			showMemePopup = true;
 		}
-	}
 
-	function handleReset() {
-		gameStore.reset();
-		if (gameStore.game) {
-			localStorage.setItem('ocko_current_game', JSON.stringify(gameStore.game));
+		// Save to Convex
+		try {
+			await convex.mutation(api.players.setValue, {
+				id: playerId as Id<'players'>,
+				value: newValue
+			});
+		} catch (e) {
+			log.error({ initId, error: e }, 'GamePage: Failed to update player value');
 		}
 	}
 
-	function handleEditSubmit(bank: number, playerNames: string[]) {
+	async function handleReset() {
 		if (!gameStore.game) return;
 
-		// Update game with new settings
-		const updatedGame: GameWithPlayers = {
-			...gameStore.game,
-			initialBank: bank,
-			currentBank: bank,
-			players: playerNames.map((name, index) => {
-				const existingPlayer = gameStore.game!.players.find((p) => p.name === name);
-				return existingPlayer || {
-					_id: crypto.randomUUID(),
-					gameId: gameStore.game!._id,
-					name,
-					value: 0,
-					position: index
-				};
-			})
-		};
+		const initId = crypto.randomUUID();
+		log.info({ initId }, 'GamePage: Resetting game');
 
-		// Recalculate bank based on player values
-		const playersValueSum = updatedGame.players.reduce((sum, p) => sum + p.value * -1, 0);
-		updatedGame.currentBank = updatedGame.initialBank + playersValueSum;
+		gameStore.reset();
 
-		gameStore.setGame(updatedGame);
-		localStorage.setItem('ocko_current_game', JSON.stringify(updatedGame));
+		try {
+			await convex.mutation(api.games.reset, {
+				id: gameStore.game._id as Id<'games'>
+			});
+		} catch (e) {
+			log.error({ initId, error: e }, 'GamePage: Failed to reset game');
+		}
+	}
+
+	function handleEditSubmit(bank: number, playerNames: string[], enableMemes: boolean) {
+		// TODO: Implement edit via Convex
 		showEditDialog = false;
 	}
 
@@ -129,7 +131,14 @@
 </script>
 
 <div class="space-y-6">
-	{#if gameStore.game}
+	{#if isLoading}
+		<Card class="text-center py-12">
+			<CardContent class="flex flex-col items-center gap-4">
+				<Loader2 class="h-8 w-8 animate-spin text-muted-foreground" />
+				<p class="text-muted-foreground">{i18n.t.common.loading}</p>
+			</CardContent>
+		</Card>
+	{:else if gameStore.game}
 		<!-- Header Controls -->
 		<div class="flex items-center justify-between">
 			<h1 class="text-2xl font-bold">{i18n.t.game.currentGame}</h1>
@@ -193,11 +202,12 @@
 			isEdit={true}
 			existingBank={gameStore.game.initialBank}
 			existingPlayers={gameStore.game.players.map((p) => p.name)}
+			existingEnableMemes={gameStore.game.enableMemes ?? true}
 			onSubmit={handleEditSubmit}
 		/>
 
 		<!-- Meme Popup -->
-		<MemePopup bind:open={showMemePopup} memeType={currentMeme} onClose={dismissMeme} />
+		<MemePopup bind:open={showMemePopup} memeType={currentMeme} playerName={gameStore.memePlayerName} onClose={dismissMeme} />
 	{:else}
 		<!-- No Game State -->
 		<Card class="text-center py-12">

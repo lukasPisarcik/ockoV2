@@ -11,20 +11,20 @@
 	let { side = 'left', class: className, children }: Props & { children?: import('svelte').Snippet } = $props();
 
 	const sideVariants = {
-		left: 'inset-y-0 left-0 h-full w-3/4 max-w-sm border-r data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left',
-		right: 'inset-y-0 right-0 h-full w-3/4 max-w-sm border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right',
-		top: 'inset-x-0 top-0 border-b data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top',
-		bottom: 'inset-x-0 bottom-0 border-t data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom'
+		left: 'inset-y-0 left-0 h-full w-3/4 max-w-sm border-r',
+		right: 'inset-y-0 right-0 h-full w-3/4 max-w-sm border-l',
+		top: 'inset-x-0 top-0 border-b',
+		bottom: 'inset-x-0 bottom-0 border-t'
 	};
 </script>
 
 <SheetPrimitive.Portal>
 	<SheetPrimitive.Overlay
-		class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm"
+		class="fixed inset-0 z-50 bg-black/50"
 	/>
 	<SheetPrimitive.Content
 		class={cn(
-			'fixed z-50 gap-4 bg-background p-6 shadow-lg transition-transform duration-300 ease-in-out',
+			'fixed z-50 gap-4 bg-popover p-6 shadow-lg',
 			sideVariants[side],
 			className
 		)}

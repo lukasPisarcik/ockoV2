@@ -3,9 +3,10 @@ import { v } from 'convex/values';
 
 export default defineSchema({
 	users: defineTable({
-		name: v.string(),
+		deviceId: v.string(),
+		name: v.optional(v.string()),
 		createdAt: v.number()
-	}),
+	}).index('by_device_id', ['deviceId']),
 
 	games: defineTable({
 		userId: v.id('users'),
@@ -13,7 +14,8 @@ export default defineSchema({
 		currentBank: v.number(),
 		startedAt: v.number(),
 		endedAt: v.optional(v.number()),
-		isActive: v.boolean()
+		isActive: v.boolean(),
+		enableMemes: v.optional(v.boolean())
 	}).index('by_user', ['userId']).index('by_user_active', ['userId', 'isActive']),
 
 	players: defineTable({

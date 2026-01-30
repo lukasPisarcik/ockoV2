@@ -10,6 +10,10 @@ export class GameStore {
 	error = $state<string | null>(null);
 	showMeme = $state(false);
 	memeType = $state<MemeType>('BANK');
+	memePlayerName = $state<string>('');
+	
+	// Track which milestones have been shown to avoid repeating
+	private shownMilestones = new Set<string>();
 
 	/**
 	 * Initialize with a game
@@ -55,28 +59,53 @@ export class GameStore {
 	private checkMemeConditions() {
 		if (!this.game) return;
 
+		// Check if memes are enabled
+		if (this.game.enableMemes === false) {
+			this.showMeme = false;
+			return;
+		}
+
 		// Bank is empty
 		if (this.game.currentBank <= 0) {
-			this.memeType = 'BANK';
-			this.showMeme = true;
-			return;
+			const milestoneKey = 'bank_empty';
+			if (!this.shownMilestones.has(milestoneKey)) {
+				this.memeType = 'BANK';
+				this.memePlayerName = '';
+				this.showMeme = true;
+				this.shownMilestones.add(milestoneKey);
+				return;
+			}
 		}
 
-		// Calculate total player values
-		const playersValueSum = this.game.players.reduce((sum, p) => sum + p.value, 0);
+		// Check individual player milestones (every 50)
+		for (const player of this.game.players) {
+			// Calculate which 50-milestone the player is at
+			const winMilestone = Math.floor(player.value / 50);
+			const loseMilestone = Math.floor(Math.abs(player.value) / 50);
 
-		// Players collectively lost 100
-		if (playersValueSum === -100) {
-			this.memeType = 'LOSE';
-			this.showMeme = true;
-			return;
-		}
+			// Player won 50+ (positive milestones: 50, 100, 150, ...)
+			if (player.value >= 50) {
+				const milestoneKey = `${player._id}_win_${winMilestone}`;
+				if (!this.shownMilestones.has(milestoneKey)) {
+					this.memeType = 'WIN';
+					this.memePlayerName = player.name;
+					this.showMeme = true;
+					this.shownMilestones.add(milestoneKey);
+					return;
+				}
+			}
 
-		// Players collectively won 100
-		if (playersValueSum === 100) {
-			this.memeType = 'WIN';
-			this.showMeme = true;
-			return;
+			// Player lost 50+ (negative milestones: -50, -100, -150, ...)
+			if (player.value <= -50) {
+				const milestoneKey = `${player._id}_lose_${loseMilestone}`;
+				if (!this.shownMilestones.has(milestoneKey)) {
+					this.memeType = 'LOSE';
+					this.memePlayerName = player.name;
+					this.showMeme = true;
+					this.shownMilestones.add(milestoneKey);
+					return;
+				}
+			}
 		}
 
 		this.showMeme = false;
@@ -98,6 +127,7 @@ export class GameStore {
 		this.game.players.forEach((p) => (p.value = 0));
 		this.game.currentBank = this.game.initialBank;
 		this.showMeme = false;
+		this.shownMilestones.clear();
 	}
 
 	/**

@@ -1,56 +1,31 @@
 import { log } from '$lib/utils';
 
-export type Theme = 'light' | 'dark' | 'system';
+export type Theme = 'light' | 'dark';
 
 const STORAGE_KEY = 'ocko_theme';
 
 /**
  * Svelte 5 class-based store for theme management
+ * Uses system preference as default, but saves user preference
  */
 export class ThemeStore {
-	theme = $state<Theme>('system');
-	resolvedTheme = $state<'light' | 'dark'>('light');
-
-	private mediaQuery: MediaQueryList | null = null;
+	theme = $state<Theme>('light');
 
 	constructor() {
 		if (typeof window !== 'undefined') {
-			// Load saved theme
+			// Check for saved preference first
 			const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
-			if (stored && ['light', 'dark', 'system'].includes(stored)) {
+			if (stored && ['light', 'dark'].includes(stored)) {
 				this.theme = stored;
+			} else {
+				// Fall back to system preference
+				const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+				this.theme = prefersDark ? 'dark' : 'light';
 			}
 
-			// Set up media query listener for system preference
-			this.mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-			this.mediaQuery.addEventListener('change', this.handleSystemChange);
-
-			// Initial resolve
-			this.resolveTheme();
+			// Apply theme immediately
+			this.applyTheme();
 		}
-	}
-
-	/**
-	 * Handle system theme change
-	 */
-	private handleSystemChange = () => {
-		if (this.theme === 'system') {
-			this.resolveTheme();
-		}
-	};
-
-	/**
-	 * Resolve the actual theme based on preference
-	 */
-	private resolveTheme() {
-		if (this.theme === 'system') {
-			this.resolvedTheme = this.mediaQuery?.matches ? 'dark' : 'light';
-		} else {
-			this.resolvedTheme = this.theme;
-		}
-
-		// Apply to document
-		this.applyTheme();
 	}
 
 	/**
@@ -59,7 +34,7 @@ export class ThemeStore {
 	private applyTheme() {
 		if (typeof document !== 'undefined') {
 			const root = document.documentElement;
-			if (this.resolvedTheme === 'dark') {
+			if (this.theme === 'dark') {
 				root.classList.add('dark');
 			} else {
 				root.classList.remove('dark');
@@ -78,33 +53,28 @@ export class ThemeStore {
 		if (typeof window !== 'undefined') {
 			localStorage.setItem(STORAGE_KEY, theme);
 		}
-		this.resolveTheme();
+		this.applyTheme();
 	}
 
 	/**
-	 * Cycle through themes
+	 * Toggle between light and dark
 	 */
-	cycle() {
-		const themes: Theme[] = ['light', 'dark', 'system'];
-		const currentIndex = themes.indexOf(this.theme);
-		const nextIndex = (currentIndex + 1) % themes.length;
-		this.setTheme(themes[nextIndex]);
+	toggle() {
+		this.setTheme(this.theme === 'light' ? 'dark' : 'light');
 	}
 
 	/**
 	 * Initialize theme (call on mount)
 	 */
 	init() {
-		this.resolveTheme();
+		this.applyTheme();
 	}
 
 	/**
 	 * Dispose resources
 	 */
 	dispose() {
-		if (this.mediaQuery) {
-			this.mediaQuery.removeEventListener('change', this.handleSystemChange);
-		}
+		// Nothing to clean up now
 	}
 }
 

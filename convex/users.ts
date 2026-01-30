@@ -12,43 +12,53 @@ export const get = query({
 });
 
 /**
- * Get or create a user by name
- * Used to identify returning users
+ * Get a user by device ID
  */
-export const getOrCreate = mutation({
-	args: { name: v.string() },
+export const getByDeviceId = query({
+	args: { deviceId: v.string() },
 	handler: async (ctx, args) => {
-		// Try to find existing user by name
-		const existingUser = await ctx.db
+		return await ctx.db
 			.query('users')
-			.filter((q) => q.eq(q.field('name'), args.name))
+			.withIndex('by_device_id', (q) => q.eq('deviceId', args.deviceId))
 			.first();
-
-		if (existingUser) {
-			return existingUser._id;
-		}
-
-		// Create new user
-		const userId = await ctx.db.insert('users', {
-			name: args.name,
-			createdAt: Date.now()
-		});
-
-		return userId;
 	}
 });
 
 /**
- * Create a new user
+ * Get or create a user by device ID
+ * Used for anonymous device-based authentication
  */
-export const create = mutation({
-	args: { name: v.string() },
+export const getOrCreateByDeviceId = mutation({
+	args: { deviceId: v.string(), name: v.optional(v.string()) },
 	handler: async (ctx, args) => {
+		// Try to find existing user by deviceId
+		const existingUser = await ctx.db
+			.query('users')
+			.withIndex('by_device_id', (q) => q.eq('deviceId', args.deviceId))
+			.first();
+
+		if (existingUser) {
+			return existingUser;
+		}
+
+		// Create new user
 		const userId = await ctx.db.insert('users', {
+			deviceId: args.deviceId,
 			name: args.name,
 			createdAt: Date.now()
 		});
 
-		return userId;
+		return await ctx.db.get(userId);
+	}
+});
+
+/**
+ * Update user's display name
+ */
+export const updateName = mutation({
+	args: { id: v.id('users'), name: v.string() },
+	handler: async (ctx, args) => {
+		await ctx.db.patch(args.id, { name: args.name });
+		return await ctx.db.get(args.id);
 	}
 });

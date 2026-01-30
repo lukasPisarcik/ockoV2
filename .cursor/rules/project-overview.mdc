@@ -23,7 +23,6 @@ src/lib/
 ├── server/
 │   ├── services/     # Business logic (Azure SDK operations)
 │   └── db/           # JSON file database layer
-├── videoConference/  # ACS composite wrappers
 └── utils/            # Shared utilities (logger, formatZodErrors)
 
 src/routes/

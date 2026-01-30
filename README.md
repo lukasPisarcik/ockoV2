@@ -1,6 +1,6 @@
 # Ocko v2
 
-A score tracking helper for the Ocko dice game - modernized version with new features.
+A score tracking app for Ocko - a modified blackjack-style card game. Keep track of player money, game history, and statistics.
 
 ## Tech Stack
 
@@ -20,7 +20,7 @@ A score tracking helper for the Ocko dice game - modernized version with new fea
 - Game history
 - Statistics and charts (cumulative results, win/loss ratio)
 - Internationalization (English & Slovak)
-- Dark/Light/System theme support
+- Dark/Light theme (defaults to system preference)
 - Multi-device sync (Convex - coming soon)
 
 ## Getting Started

@@ -10,13 +10,14 @@ export const translations = {
 		},
 		// Home page
 		home: {
-			welcome: 'Welcome back Pirate',
+			welcomeBack: 'Welcome back',
 			description:
-				'This app helps you track scores during the Ocko dice game. Create a new game or continue the last one.',
+				'This app helps you track money during your Ocko card game. Create a new game or continue the last one.',
 			startPlaying: 'Start Playing',
 			createOrContinue: 'Create a new game or continue previous one',
 			newGame: 'New Game',
-			continue: 'Continue'
+			continue: 'Continue',
+			playerNamesTip: 'Use the same player names across games for accurate statistics. "John" and "Johnny" are tracked as different players.'
 		},
 		// Game page
 		game: {
@@ -43,7 +44,9 @@ export const translations = {
 			noPlayersYet: 'No players added yet',
 			cancel: 'Cancel',
 			createGame: 'Create Game',
-			updateGame: 'Update Game'
+			updateGame: 'Update Game',
+			enableMemes: 'Enable Memes',
+			memesDescription: 'Show fun popups during gameplay'
 		},
 		// Player card
 		playerCard: {
@@ -57,6 +60,10 @@ export const translations = {
 			playersWonMessage: 'Players collectively won 100€!',
 			playersLost: 'Players lost!',
 			playersLostMessage: 'Players collectively lost 100€!',
+			playerWon: 'is on fire!',
+			playerWonMessage: 'Reached 50€+ profit! Keep it going! 🔥',
+			playerLost: 'is struggling!',
+			playerLostMessage: 'Lost 50€+... Better luck next time! 😅',
 			continue: 'Continue'
 		},
 		// History page
@@ -72,20 +79,21 @@ export const translations = {
 		// Stats page
 		stats: {
 			title: 'Statistics',
+			overview: 'Overview',
 			totalGames: 'Total Games',
-			totalWon: 'Total Won',
-			totalLost: 'Total Lost',
-			netResult: 'Net Result',
-			resultsOverTime: 'Results Over Time',
-			cumulativeProgress: 'Cumulative progress of results',
-			winLossRatio: 'Win/Loss Ratio',
-			gameResultsDistribution: 'Distribution of game results',
-			wins: 'Wins',
-			losses: 'Losses',
-			draws: 'Draws',
+			totalPlayers: 'Total Players',
+			totalMoneyMoved: 'Total Money Moved',
+			averagePerGame: 'Avg per Game',
+			playerLeaderboard: 'Player Leaderboard',
+			allPlayersStats: 'Statistics for all players across all games',
+			player: 'Player',
+			gamesPlayed: 'Games',
+			balance: 'Balance',
+			avgPerGame: 'Avg/Game',
 			noData: 'No data yet. Play some games to see statistics.',
-			cumulativeResult: 'Cumulative Result',
-			result: 'Result ($)'
+			rank: '#',
+			balanceChart: 'Balance Overview',
+			balanceChartDesc: 'Visual comparison of player balances'
 		},
 		// About page
 		about: {
@@ -93,7 +101,7 @@ export const translations = {
 			subtitle: 'Track your scores and have fun!',
 			whatIsOcko: 'What is Ocko?',
 			ockoDescription:
-				'Ocko is a Slovak dice game where players bet against the bank. This app helps you track game progress, individual player results, and overall statistics.',
+				'Ocko is a modified blackjack-style card game where players bet against the bank. This app helps you track game progress, individual player money, and overall statistics.',
 			disclaimer:
 				'Note: This app is just a score tracker. We are not responsible for any financial losses during gameplay.',
 			features: 'Features',
@@ -111,6 +119,7 @@ export const translations = {
 			enthusiast: '- programming and gaming enthusiast.',
 			supportProject: 'Support the Project',
 			supportDescription: 'If you like the app, you can support its development',
+			shareWinnings: 'Enjoy the winnings from Ocko? Share some of them with the creator! 😄🎉',
 			supportDetails:
 				'Development and maintenance of this app requires time and effort. If you want to support the project, you can contribute to the following account:',
 			iban: 'IBAN',
@@ -122,6 +131,16 @@ export const translations = {
 			builtWith: 'Built with modern technologies',
 			version: 'Version'
 		},
+		// Welcome dialog
+		welcome: {
+			title: 'Welcome to Ocko! 👋',
+			description: 'Enter your name to get started.',
+			yourName: 'Your name',
+			namePlaceholder: 'Enter your name',
+			continue: 'Continue',
+			nameRequired: 'Please enter your name',
+			saveFailed: 'Failed to save. Please try again.'
+		},
 		// Common
 		common: {
 			appName: 'Ocko',
@@ -130,7 +149,8 @@ export const translations = {
 			theme: 'Theme',
 			light: 'Light',
 			dark: 'Dark',
-			system: 'System'
+			system: 'System',
+			loading: 'Loading...'
 		}
 	},
 	sk: {
@@ -144,13 +164,14 @@ export const translations = {
 		},
 		// Home page
 		home: {
-			welcome: 'Vitaj spat Pirat',
+			welcomeBack: 'Vitaj spat',
 			description:
-				'Tato aplikacia sluzi ako pomocka pri hre Ocko. Vytvorte si novu hru alebo pokracujte v poslednej.',
+				'Tato aplikacia sluzi na sledovanie penazi pocas kartovej hry Ocko. Vytvorte si novu hru alebo pokracujte v poslednej.',
 			startPlaying: 'Zacni hrat',
 			createOrContinue: 'Vytvor novu hru alebo pokracuj v predchadzajucej',
 			newGame: 'Nova hra',
-			continue: 'Pokracovat'
+			continue: 'Pokracovat',
+			playerNamesTip: 'Pouzivaj rovnake mena hracov vo vsetkych hrach pre presne statistiky. "Jano" a "Janko" su evidovani ako rozni hraci.'
 		},
 		// Game page
 		game: {
@@ -177,7 +198,9 @@ export const translations = {
 			noPlayersYet: 'Zatial niesu pridany ziadny hraci',
 			cancel: 'Zrusit',
 			createGame: 'Vytvorit hru',
-			updateGame: 'Upravit hru'
+			updateGame: 'Upravit hru',
+			enableMemes: 'Povolit memes',
+			memesDescription: 'Zobrazit zabavne okna pocas hry'
 		},
 		// Player card
 		playerCard: {
@@ -186,11 +209,15 @@ export const translations = {
 		// Meme popup
 		meme: {
 			bankEmpty: 'Bank je prazdny!',
-			bankEmptyMessage: 'Banka dosla, hra skoncila.',
+			bankEmptyMessage: 'Hra skoncila.',
 			playersWon: 'Hraci vyhrali!',
 			playersWonMessage: 'Hraci spolu vyhrali 100€!',
 			playersLost: 'Hraci prehrali!',
 			playersLostMessage: 'Hraci spolu prehrali 100€!',
+			playerWon: 'je v ohni!',
+			playerWonMessage: 'Dosiahol 50€+ zisk! Tak drzat! 🔥',
+			playerLost: 'ma smolu!',
+			playerLostMessage: 'Stratil 50€+... Snáď nabudúce! 😅',
 			continue: 'Pokracovat'
 		},
 		// History page
@@ -206,20 +233,21 @@ export const translations = {
 		// Stats page
 		stats: {
 			title: 'Statistiky',
+			overview: 'Prehlad',
 			totalGames: 'Celkom hier',
-			totalWon: 'Celkom vyhrane',
-			totalLost: 'Celkom prehrane',
-			netResult: 'Cisty vysledok',
-			resultsOverTime: 'Vysledky v case',
-			cumulativeProgress: 'Kumulativny priebeh vysledkov',
-			winLossRatio: 'Pomer vyhier a prehier',
-			gameResultsDistribution: 'Rozdelenie vysledkov hier',
-			wins: 'Vyhry',
-			losses: 'Prehry',
-			draws: 'Remiza',
+			totalPlayers: 'Celkom hracov',
+			totalMoneyMoved: 'Celkom penazi',
+			averagePerGame: 'Priemer na hru',
+			playerLeaderboard: 'Rebricek hracov',
+			allPlayersStats: 'Statistiky vsetkych hracov zo vsetkych hier',
+			player: 'Hrac',
+			gamesPlayed: 'Hry',
+			balance: 'Zostatok',
+			avgPerGame: 'Priemer/Hra',
 			noData: 'Zatial ziadne data. Zahraj niekolko hier pre zobrazenie statistik.',
-			cumulativeResult: 'Kumulativny vysledok',
-			result: 'Vysledok ($)'
+			rank: '#',
+			balanceChart: 'Prehlad zostatkov',
+			balanceChartDesc: 'Vizualne porovnanie zostatkov hracov'
 		},
 		// About page
 		about: {
@@ -227,7 +255,7 @@ export const translations = {
 			subtitle: 'Pomocka pri hre Ocko - sledujte svoje vysledky a bavte sa!',
 			whatIsOcko: 'Co je Ocko?',
 			ockoDescription:
-				'Ocko je slovenska kockovacia hra, kde hraci stavaju proti banke. Tato aplikacia vam pomoze sledovat priebeh hry, vysledky jednotlivych hracov a celkove statistiky.',
+				'Ocko je modifikovana kartova hra podobna blackjacku, kde hraci stavaju proti banke. Tato aplikacia vam pomoze sledovat priebeh hry, peniaze jednotlivych hracov a celkove statistiky.',
 			disclaimer:
 				'Poznamka: Tato aplikacia je len pomocka na sledovanie skore. Nezodpovedame za ziadne financne straty pri hrani hry.',
 			features: 'Funkcie',
@@ -245,6 +273,7 @@ export const translations = {
 			enthusiast: '- nadsenec do programovania a hier.',
 			supportProject: 'Podpora projektu',
 			supportDescription: 'Ak sa vam aplikacia paci, mozete podporit jej vyvoj',
+			shareWinnings: 'Uzivas si vyhry z Ocka? Podel sa o ne s autorom! 😄🎉',
 			supportDetails:
 				'Vyvoj a udrzba tejto aplikacie vyzaduje cas a usilie. Ak chcete podporit projekt, mozete prispiet na nasledujuci ucet:',
 			iban: 'IBAN',
@@ -256,6 +285,16 @@ export const translations = {
 			builtWith: 'Postavene na modernych technologiach',
 			version: 'Verzia'
 		},
+		// Welcome dialog
+		welcome: {
+			title: 'Vitaj v Ocko! 👋',
+			description: 'Zadaj svoje meno pre zaciatok.',
+			yourName: 'Tvoje meno',
+			namePlaceholder: 'Zadaj svoje meno',
+			continue: 'Pokracovat',
+			nameRequired: 'Prosim zadaj svoje meno',
+			saveFailed: 'Nepodarilo sa ulozit. Skus to znova.'
+		},
 		// Common
 		common: {
 			appName: 'Ocko',
@@ -264,7 +303,8 @@ export const translations = {
 			theme: 'Tema',
 			light: 'Svetla',
 			dark: 'Tmava',
-			system: 'Systemova'
+			system: 'Systemova',
+			loading: 'Nacitavam...'
 		}
 	}
 } as const;

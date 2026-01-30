@@ -4,37 +4,56 @@
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
 	import type { GameWithPlayers } from '$lib/schemas';
-	import { Calendar, Users, Wallet, Clock } from 'lucide-svelte';
+	import { Calendar, Users, Wallet, Clock, Loader2 } from 'lucide-svelte';
 	import { getI18n } from '$lib/i18n';
+	import { getUser } from '$lib/stores';
+	import { getConvexClient } from '$lib/convex';
+	import { api } from '../../../convex/_generated/api';
+	import { log } from '$lib/utils';
 
 	const i18n = getI18n();
+	const user = getUser();
+	const convex = getConvexClient();
+
 	let games = $state<GameWithPlayers[]>([]);
+	let isLoading = $state(true);
+	let unsubscribe: (() => void) | null = null;
 
 	onMount(() => {
-		// Load games history from localStorage
-		const historyData = localStorage.getItem('ocko_game_history');
-		if (historyData) {
-			try {
-				games = JSON.parse(historyData);
-			} catch (e) {
-				console.error('Failed to load game history', e);
-			}
-		}
+		const initId = crypto.randomUUID();
+		log.info({ initId }, 'HistoryPage: Mounting');
 
-		// Also check current game
-		const currentGame = localStorage.getItem('ocko_current_game');
-		if (currentGame) {
-			try {
-				const game = JSON.parse(currentGame);
-				// Add to history if not already there
-				if (!games.some((g) => g._id === game._id)) {
-					games = [game, ...games];
-				}
-			} catch (e) {
-				console.error('Failed to load current game', e);
+		// Wait for user to be ready, then load games
+		const checkUser = setInterval(() => {
+			if (user.isReady && user.userId) {
+				clearInterval(checkUser);
+				loadGames();
 			}
-		}
+		}, 100);
+
+		// Timeout after 5 seconds
+		setTimeout(() => {
+			clearInterval(checkUser);
+			isLoading = false;
+		}, 5000);
+
+		return () => {
+			clearInterval(checkUser);
+			if (unsubscribe) unsubscribe();
+		};
 	});
+
+	function loadGames() {
+		if (!user.userId) return;
+
+		unsubscribe = convex.onUpdate(api.games.listByUser, { userId: user.userId }, (result) => {
+			games = (result || []).map(g => ({
+				...g,
+				enableMemes: g.enableMemes ?? true
+			}));
+			isLoading = false;
+		});
+	}
 
 	function formatDate(timestamp: number): string {
 		const locale = i18n.language === 'sk' ? 'sk-SK' : 'en-US';
@@ -63,7 +82,14 @@
 		<h1 class="text-2xl font-bold">{i18n.t.history.title}</h1>
 	</div>
 
-	{#if games.length === 0}
+	{#if isLoading}
+		<Card class="text-center py-12">
+			<CardContent class="flex flex-col items-center gap-4">
+				<Loader2 class="h-8 w-8 animate-spin text-muted-foreground" />
+				<p class="text-muted-foreground">{i18n.t.common.loading}</p>
+			</CardContent>
+		</Card>
+	{:else if games.length === 0}
 		<Card class="text-center py-12">
 			<CardContent>
 				<p class="text-xl text-muted-foreground mb-4">{i18n.t.history.noGamesYet}</p>

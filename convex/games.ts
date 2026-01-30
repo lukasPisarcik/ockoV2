@@ -85,7 +85,8 @@ export const create = mutation({
 	args: {
 		userId: v.id('users'),
 		initialBank: v.number(),
-		playerNames: v.array(v.string())
+		playerNames: v.array(v.string()),
+		enableMemes: v.optional(v.boolean())
 	},
 	handler: async (ctx, args) => {
 		// Deactivate any existing active game
@@ -107,7 +108,8 @@ export const create = mutation({
 			initialBank: args.initialBank,
 			currentBank: args.initialBank,
 			startedAt: Date.now(),
-			isActive: true
+			isActive: true,
+			enableMemes: args.enableMemes ?? true
 		});
 
 		// Create players

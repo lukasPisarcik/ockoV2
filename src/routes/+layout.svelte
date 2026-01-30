@@ -6,14 +6,16 @@
 	import { Sheet, SheetContent, SheetHeader, SheetTitle } from '$lib/components/ui/sheet';
 	import ThemeSwitcher from '$lib/components/ThemeSwitcher.svelte';
 	import LanguageSwitcher from '$lib/components/LanguageSwitcher.svelte';
-	import { Home, Gamepad2, History, BarChart3, Info, Menu } from 'lucide-svelte';
+	import { Home, Gamepad2, History, BarChart3, Menu } from 'lucide-svelte';
 	import { getI18n } from '$lib/i18n';
-	import { getTheme } from '$lib/stores';
+	import { getTheme, UserStore, setUser } from '$lib/stores';
 
 	let { children } = $props();
 
 	const i18n = getI18n();
 	const theme = getTheme();
+	const user = new UserStore();
+	setUser(user);
 
 	let menuOpen = $state(false);
 
@@ -22,8 +24,7 @@
 		{ href: '/', label: i18n.t.nav.home, icon: Home },
 		{ href: '/game', label: i18n.t.nav.game, icon: Gamepad2 },
 		{ href: '/history', label: i18n.t.nav.history, icon: History },
-		{ href: '/stats', label: i18n.t.nav.stats, icon: BarChart3 },
-		{ href: '/about', label: i18n.t.nav.about, icon: Info }
+		{ href: '/stats', label: i18n.t.nav.stats, icon: BarChart3 }
 	]);
 
 	// Close menu on navigation
@@ -34,7 +35,11 @@
 
 	onMount(() => {
 		theme.init();
-		return () => theme.dispose();
+		user.init();
+		return () => {
+			theme.dispose();
+			user.dispose();
+		};
 	});
 </script>
 
@@ -42,15 +47,10 @@
 	<!-- Header -->
 	<header class="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
 		<div class="flex h-14 items-center justify-between px-4 max-w-screen-lg mx-auto w-full">
-			<div class="flex items-center gap-2">
-				<!-- Mobile menu button -->
-				<Button variant="ghost" size="icon" class="md:hidden" onclick={() => (menuOpen = true)}>
-					<Menu class="h-5 w-5" />
-				</Button>
-				<a href="/" class="flex items-center space-x-2">
-					<span class="text-xl font-bold">{i18n.t.common.appName}</span>
-				</a>
-			</div>
+			<a href="/" class="flex items-center gap-2">
+				<img src="/logo.png" alt="Ocko" class="h-8 w-8" />
+				<span class="text-xl font-bold">{i18n.t.common.appName}</span>
+			</a>
 
 			<!-- Desktop nav -->
 			<nav class="hidden md:flex items-center space-x-1">
@@ -71,15 +71,22 @@
 			<div class="flex items-center gap-1">
 				<LanguageSwitcher />
 				<ThemeSwitcher />
+				<!-- Mobile menu button -->
+				<Button variant="ghost" size="icon" class="md:hidden" onclick={() => (menuOpen = true)}>
+					<Menu class="h-5 w-5" />
+				</Button>
 			</div>
 		</div>
 	</header>
 
 	<!-- Mobile side menu -->
 	<Sheet bind:open={menuOpen}>
-		<SheetContent side="left">
+		<SheetContent side="right">
 			<SheetHeader>
-				<SheetTitle>{i18n.t.common.appName}</SheetTitle>
+				<SheetTitle class="flex items-center gap-2">
+					<img src="/logo.png" alt="Ocko" class="h-6 w-6" />
+					{i18n.t.common.appName}
+				</SheetTitle>
 			</SheetHeader>
 			<nav class="flex flex-col gap-2 mt-6">
 				{#each navItems as item}
@@ -101,11 +108,4 @@
 	<main class="flex-1 px-4 py-6 max-w-screen-lg mx-auto w-full">
 		{@render children()}
 	</main>
-
-	<!-- Footer -->
-	<footer class="border-t py-4">
-		<div class="text-center text-sm text-muted-foreground px-4 max-w-screen-lg mx-auto">
-			{i18n.t.common.appName} - {i18n.t.common.gameHelper}
-		</div>
-	</footer>
 </div>

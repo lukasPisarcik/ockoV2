@@ -6,7 +6,8 @@ import { PlayerSchema } from './player.schema';
  */
 export const CreateGameSchema = z.object({
 	initialBank: z.number().positive('Bank must be positive'),
-	playerNames: z.array(z.string().min(1)).min(1, 'At least one player required')
+	playerNames: z.array(z.string().min(1)).min(1, 'At least one player required'),
+	enableMemes: z.boolean().default(true)
 });
 
 export type CreateGame = z.infer<typeof CreateGameSchema>;
@@ -21,7 +22,8 @@ export const GameSchema = z.object({
 	currentBank: z.number(),
 	startedAt: z.number(),
 	endedAt: z.number().optional(),
-	isActive: z.boolean()
+	isActive: z.boolean(),
+	enableMemes: z.boolean().default(true)
 });
 
 export type Game = z.infer<typeof GameSchema>;
