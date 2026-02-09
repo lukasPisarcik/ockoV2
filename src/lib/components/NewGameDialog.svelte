@@ -43,16 +43,15 @@
 	let error = $state<string | null>(null);
 	let isSubmitting = $state(false);
 
-	// Initialize players from props when dialog opens in edit mode
+	// Initialize form when dialog opens
 	$effect(() => {
-		if (isEdit && existingPlayers.length > 0) {
-			players = [...existingPlayers];
-		}
-		if (isEdit && existingBank !== undefined) {
-			bank = existingBank;
-		}
-		if (isEdit) {
+		if (open && isEdit) {
+			// Edit mode: populate with existing values
+			players = existingPlayers.length > 0 ? [...existingPlayers] : [];
+			bank = existingBank !== undefined ? existingBank : '';
 			enableMemes = existingEnableMemes;
+			playerName = '';
+			error = null;
 		}
 	});
 

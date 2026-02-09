@@ -179,3 +179,62 @@ export const reset = mutation({
 		}
 	}
 });
+
+/**
+ * Update a game's settings (bank, players, memes)
+ */
+export const update = mutation({
+	args: {
+		id: v.id('games'),
+		initialBank: v.number(),
+		playerNames: v.array(v.string()),
+		enableMemes: v.optional(v.boolean())
+	},
+	handler: async (ctx, args) => {
+		const game = await ctx.db.get(args.id);
+		if (!game) throw new Error('Game not found');
+
+		// Get current players
+		const currentPlayers = await ctx.db
+			.query('players')
+			.withIndex('by_game', (q) => q.eq('gameId', args.id))
+			.collect();
+
+		const currentPlayerNames = currentPlayers.map((p) => p.name);
+
+		// Calculate bank difference and adjust current bank proportionally
+		const bankDiff = args.initialBank - game.initialBank;
+		const newCurrentBank = game.currentBank + bankDiff;
+
+		// Update game
+		await ctx.db.patch(args.id, {
+			initialBank: args.initialBank,
+			currentBank: Math.max(0, newCurrentBank),
+			enableMemes: args.enableMemes ?? true
+		});
+
+		// Remove players that are no longer in the list
+		for (const player of currentPlayers) {
+			if (!args.playerNames.includes(player.name)) {
+				await ctx.db.delete(player._id);
+			}
+		}
+
+		// Add new players
+		const maxPosition = currentPlayers.length > 0 
+			? Math.max(...currentPlayers.map((p) => p.position)) 
+			: -1;
+		let newPosition = maxPosition + 1;
+
+		for (const name of args.playerNames) {
+			if (!currentPlayerNames.includes(name)) {
+				await ctx.db.insert('players', {
+					gameId: args.id,
+					name,
+					value: 0,
+					position: newPosition++
+				});
+			}
+		}
+	}
+});

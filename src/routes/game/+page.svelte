@@ -127,9 +127,28 @@
 		}
 	}
 
-	function handleEditSubmit(bank: number, playerNames: string[], enableMemes: boolean) {
-		// TODO: Implement edit via Convex
+	async function handleEditSubmit(bank: number, playerNames: string[], enableMemes: boolean) {
+		if (!gameStore.game) return;
+
+		const convex = getConvexClient();
+		if (!convex) return;
+
+		const initId = crypto.randomUUID();
+		log.info({ initId, bank, playerNames, enableMemes }, 'GamePage: Updating game settings');
+
 		showEditDialog = false;
+
+		try {
+			await convex.mutation(api.games.update, {
+				id: gameStore.game._id as Id<'games'>,
+				initialBank: bank,
+				playerNames,
+				enableMemes
+			});
+			log.info({ initId }, 'GamePage: Game updated successfully');
+		} catch (e) {
+			log.error({ initId, error: e }, 'GamePage: Failed to update game');
+		}
 	}
 
 	function dismissMeme() {
