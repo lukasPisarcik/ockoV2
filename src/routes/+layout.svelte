@@ -43,7 +43,7 @@
 	});
 </script>
 
-<div class="min-h-screen flex flex-col">
+<div class="min-h-dvh flex flex-col">
 	<!-- Header -->
 	<header class="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
 		<div class="flex h-14 items-center justify-between px-4 max-w-screen-lg mx-auto w-full">

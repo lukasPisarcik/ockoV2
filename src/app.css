@@ -79,21 +79,26 @@ html {
 	transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* Fix mobile keyboard issues with drawers/modals */
-html, body {
+/* Fix mobile layout and keyboard issues */
+html {
 	height: 100%;
-	overflow: hidden;
 }
 
 body {
-	overflow: auto;
-	-webkit-overflow-scrolling: touch;
+	min-height: 100%;
+	min-height: 100dvh;
+	overflow-x: hidden;
+	overscroll-behavior: none;
 }
 
-/* Prevent layout shift when virtual keyboard appears */
-@supports (height: 100dvh) {
-	html, body {
-		height: 100dvh;
+/* Hide scrollbar on mobile but keep functionality */
+@media (max-width: 768px) {
+	body {
+		scrollbar-width: none; /* Firefox */
+		-ms-overflow-style: none; /* IE/Edge */
+	}
+	body::-webkit-scrollbar {
+		display: none; /* Chrome/Safari */
 	}
 }
 
