@@ -43,13 +43,17 @@
 	let error = $state<string | null>(null);
 	let isSubmitting = $state(false);
 
-	// Initialize form when dialog opens
+	// Initialize form when dialog opens in edit mode
+	// Access existingPlayers outside the conditional to ensure it's tracked as a dependency
 	$effect(() => {
+		const currentPlayers = [...existingPlayers];
+		const currentBank = existingBank;
+		const currentEnableMemes = existingEnableMemes;
+
 		if (open && isEdit) {
-			// Edit mode: populate with existing values
-			players = existingPlayers.length > 0 ? [...existingPlayers] : [];
-			bank = existingBank !== undefined ? existingBank : '';
-			enableMemes = existingEnableMemes;
+			players = currentPlayers.length > 0 ? currentPlayers : [];
+			bank = currentBank !== undefined ? currentBank : '';
+			enableMemes = currentEnableMemes;
 			playerName = '';
 			error = null;
 		}

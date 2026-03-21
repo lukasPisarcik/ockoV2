@@ -58,18 +58,18 @@
 </script>
 
 <Card class="w-full">
-	<CardContent class="p-4">
-		<div class="flex flex-col gap-3">
+	<CardContent class="p-2 sm:p-3">
+		<div class="flex items-center gap-2 sm:gap-3">
 			<!-- Player Name -->
-			<div class="text-center font-semibold text-lg">{player.name}</div>
+			<div class="font-semibold text-sm sm:text-base min-w-[60px] truncate">{player.name}</div>
 
 			<!-- Value Display / Edit -->
-			<div class="flex items-center justify-center gap-4">
+			<div class="flex items-center justify-end gap-1 sm:gap-2 flex-1">
 				<!-- -5 Button -->
 				<Button
 					variant="outline"
 					size="sm"
-					class="h-10 w-10 text-lg font-bold"
+					class="h-8 w-8 sm:h-9 sm:w-9 text-sm sm:text-base font-bold p-0"
 					onclick={() => handleDelta(-5)}
 				>
 					-5
@@ -79,17 +79,17 @@
 				<Button
 					variant="outline"
 					size="icon"
-					class="h-10 w-10"
+					class="h-8 w-8 sm:h-9 sm:w-9"
 					onclick={() => handleDelta(-1)}
 				>
-					<Minus class="h-4 w-4" />
+					<Minus class="h-3 w-3 sm:h-4 sm:w-4" />
 				</Button>
 
 				<!-- Value Display (clickable for manual edit) -->
 				{#if isEditing}
 					<Input
 						type="number"
-						class="w-20 text-center text-xl font-bold"
+						class="w-16 sm:w-20 text-center text-base sm:text-lg font-bold h-8 sm:h-9"
 						bind:value={editValue}
 						onblur={commitEdit}
 						onkeydown={handleKeyDown}
@@ -97,7 +97,7 @@
 				{:else}
 					<button
 						class={cn(
-							'min-w-[60px] text-2xl font-bold cursor-pointer hover:bg-muted rounded px-2 py-1 transition-colors',
+							'min-w-[50px] sm:min-w-[60px] text-lg sm:text-xl font-bold cursor-pointer hover:bg-muted rounded px-1 sm:px-2 py-0.5 transition-colors',
 							valueColor
 						)}
 						onclick={handleManualEdit}
@@ -111,17 +111,17 @@
 				<Button
 					variant="outline"
 					size="icon"
-					class="h-10 w-10"
+					class="h-8 w-8 sm:h-9 sm:w-9"
 					onclick={() => handleDelta(1)}
 				>
-					<Plus class="h-4 w-4" />
+					<Plus class="h-3 w-3 sm:h-4 sm:w-4" />
 				</Button>
 
 				<!-- +5 Button -->
 				<Button
 					variant="outline"
 					size="sm"
-					class="h-10 w-10 text-lg font-bold"
+					class="h-8 w-8 sm:h-9 sm:w-9 text-sm sm:text-base font-bold p-0"
 					onclick={() => handleDelta(5)}
 				>
 					+5

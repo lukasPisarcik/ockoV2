@@ -106,3 +106,18 @@ body {
 [vaul-drawer-content] {
 	max-height: 85dvh;
 }
+
+/* Disable double-tap zoom on mobile */
+button,
+input,
+select,
+textarea,
+a,
+[role="button"] {
+	touch-action: manipulation;
+}
+
+/* Additional protection against double-tap zoom */
+* {
+	-webkit-tap-highlight-color: transparent;
+}

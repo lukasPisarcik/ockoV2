@@ -13,7 +13,7 @@
 	import { api } from '@convex/_generated/api';
 	import type { MemeType } from '$lib/schemas';
 	import type { Id } from '@convex/_generated/dataModel';
-	import { RotateCcw, Settings, Loader2 } from 'lucide-svelte';
+	import { RotateCcw, Settings, Loader2, ChevronDown, ChevronUp } from 'lucide-svelte';
 	import { log } from '$lib/utils';
 	import { getI18n } from '$lib/i18n';
 
@@ -25,6 +25,7 @@
 	let showMemePopup = $state(false);
 	let currentMeme = $state<MemeType>('BANK');
 	let isLoading = $state(true);
+	let isBankExpanded = $state(false);
 	let unsubscribe: (() => void) | null = null;
 
 	onMount(() => {
@@ -157,7 +158,7 @@
 	}
 </script>
 
-<div class="space-y-6">
+<div class="space-y-3 sm:space-y-6">
 	{#if isLoading}
 		<Card class="text-center py-12">
 			<CardContent class="flex flex-col items-center gap-4">
@@ -166,54 +167,79 @@
 			</CardContent>
 		</Card>
 	{:else if gameStore.game}
-		<!-- Header Controls -->
-		<div class="flex items-center justify-between">
-			<h1 class="text-2xl font-bold">{i18n.t.game.currentGame}</h1>
-			<div class="flex gap-2">
-				<Button variant="outline" size="sm" onclick={handleReset}>
-					<RotateCcw class="h-4 w-4 mr-2" />
-					{i18n.t.game.reset}
-				</Button>
-				<Button variant="outline" size="sm" onclick={() => (showEditDialog = true)}>
-					<Settings class="h-4 w-4 mr-2" />
-					{i18n.t.game.edit}
-				</Button>
-			</div>
-		</div>
-
-		<!-- Bank Display -->
+		<!-- Bank Display (Collapsible) -->
 		<Card>
-			<CardHeader class="pb-2">
-				<CardTitle class="text-lg">{i18n.t.game.bank}</CardTitle>
-			</CardHeader>
-			<CardContent class="space-y-4">
-				<div class="flex items-center justify-between">
-					<div class="space-y-1">
-						<p class="text-sm text-muted-foreground">{i18n.t.game.initial}</p>
-						<p class="text-2xl font-bold">{gameStore.game.initialBank}€</p>
+			<button
+				class="w-full text-left"
+				onclick={() => (isBankExpanded = !isBankExpanded)}
+			>
+				<div class="flex flex-row items-center justify-between px-4 sm:px-6 py-2 sm:py-3">
+					<div class="flex items-center gap-2 sm:gap-3">
+						<span class="text-base font-semibold tracking-tight">{i18n.t.game.bank}</span>
+						{#if !isBankExpanded}
+							<span class="text-sm text-muted-foreground">
+								{gameStore.game.initialBank}€
+							</span>
+							<span class="text-sm">→</span>
+							<span
+								class="text-sm font-semibold"
+								class:text-green-600={gameStore.game.currentBank > gameStore.game.initialBank * 0.5}
+								class:text-yellow-600={gameStore.game.currentBank <= gameStore.game.initialBank * 0.5 &&
+									gameStore.game.currentBank > gameStore.game.initialBank * 0.2}
+								class:text-red-600={gameStore.game.currentBank <= gameStore.game.initialBank * 0.2}
+							>
+								{gameStore.game.currentBank}€
+							</span>
+						{/if}
 					</div>
-					<Separator orientation="vertical" class="h-12" />
-					<div class="space-y-1 text-right">
-						<p class="text-sm text-muted-foreground">{i18n.t.game.remaining}</p>
-						<p
-							class="text-2xl font-bold"
-							class:text-green-600={gameStore.game.currentBank > gameStore.game.initialBank * 0.5}
-							class:text-yellow-600={gameStore.game.currentBank <= gameStore.game.initialBank * 0.5 &&
-								gameStore.game.currentBank > gameStore.game.initialBank * 0.2}
-							class:text-red-600={gameStore.game.currentBank <= gameStore.game.initialBank * 0.2}
-						>
-							{gameStore.game.currentBank}€
-						</p>
-					</div>
+					{#if isBankExpanded}
+						<ChevronUp class="h-4 w-4 text-muted-foreground shrink-0" />
+					{:else}
+						<ChevronDown class="h-4 w-4 text-muted-foreground shrink-0" />
+					{/if}
 				</div>
-				<Progress value={gameStore.bankProgress} />
-			</CardContent>
+			</button>
+			{#if isBankExpanded}
+				<CardContent class="space-y-3 pt-0">
+					<div class="flex items-center justify-between">
+						<div class="space-y-0.5">
+							<p class="text-xs text-muted-foreground">{i18n.t.game.initial}</p>
+							<p class="text-xl font-bold">{gameStore.game.initialBank}€</p>
+						</div>
+						<Separator orientation="vertical" class="h-10" />
+						<div class="space-y-0.5 text-right">
+							<p class="text-xs text-muted-foreground">{i18n.t.game.remaining}</p>
+							<p
+								class="text-xl font-bold"
+								class:text-green-600={gameStore.game.currentBank > gameStore.game.initialBank * 0.5}
+								class:text-yellow-600={gameStore.game.currentBank <= gameStore.game.initialBank * 0.5 &&
+									gameStore.game.currentBank > gameStore.game.initialBank * 0.2}
+								class:text-red-600={gameStore.game.currentBank <= gameStore.game.initialBank * 0.2}
+							>
+								{gameStore.game.currentBank}€
+							</p>
+						</div>
+					</div>
+					<Progress value={gameStore.bankProgress} />
+					<Separator />
+					<div class="flex gap-2">
+						<Button variant="outline" size="sm" class="flex-1" onclick={handleReset}>
+							<RotateCcw class="h-4 w-4 mr-2" />
+							{i18n.t.game.reset}
+						</Button>
+						<Button variant="outline" size="sm" class="flex-1" onclick={() => (showEditDialog = true)}>
+							<Settings class="h-4 w-4 mr-2" />
+							{i18n.t.game.edit}
+						</Button>
+					</div>
+				</CardContent>
+			{/if}
 		</Card>
 
 		<!-- Players -->
-		<div class="space-y-4">
-			<h2 class="text-xl font-semibold">{i18n.t.game.players}</h2>
-			<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+		<div class="space-y-2 sm:space-y-4">
+			<h2 class="text-lg sm:text-xl font-semibold">{i18n.t.game.players}</h2>
+			<div class="grid gap-2 sm:gap-3 sm:grid-cols-2 lg:grid-cols-3">
 				{#each gameStore.game.players as player (player._id)}
 					<PlayerCard
 						{player}
