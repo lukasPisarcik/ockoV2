@@ -96,7 +96,11 @@
 		error = null;
 
 		if (onSubmit) {
-			onSubmit(validation.data.initialBank, validation.data.playerNames, validation.data.enableMemes);
+			onSubmit(
+				validation.data.initialBank,
+				validation.data.playerNames,
+				validation.data.enableMemes
+			);
 			open = false;
 			return;
 		}
@@ -139,7 +143,7 @@
 			playerName = '';
 			enableMemes = true;
 			error = null;
-			
+
 			// Auto-add user's name as first player
 			if (user.userName) {
 				players = [user.userName];
@@ -154,7 +158,9 @@
 	<Drawer.Content>
 		<div class="mx-auto w-full max-w-sm">
 			<Drawer.Header>
-				<Drawer.Title>{isEdit ? i18n.t.newGameDialog.editGame : i18n.t.newGameDialog.newGame}</Drawer.Title>
+				<Drawer.Title
+					>{isEdit ? i18n.t.newGameDialog.editGame : i18n.t.newGameDialog.newGame}</Drawer.Title
+				>
 				<Drawer.Description>
 					{isEdit ? i18n.t.newGameDialog.editSettings : i18n.t.newGameDialog.setupBankAndPlayers}
 				</Drawer.Description>
@@ -162,7 +168,9 @@
 
 			<div class="px-4">
 				{#if error}
-					<div class="flex items-center gap-2 rounded-md bg-destructive/10 p-3 text-sm text-destructive mb-4">
+					<div
+						class="flex items-center gap-2 rounded-md bg-destructive/10 p-3 text-sm text-destructive mb-4"
+					>
 						<AlertCircle class="h-4 w-4" />
 						{error}
 					</div>
@@ -227,8 +235,16 @@
 							class="data-[state=checked]:border-blue-600 data-[state=checked]:bg-blue-600 data-[state=checked]:text-white dark:data-[state=checked]:border-blue-700 dark:data-[state=checked]:bg-blue-700"
 						/>
 						<div class="grid gap-1.5 font-normal">
-							<p class="text-sm leading-none font-medium group-has-[[data-state=checked]]:text-blue-900 dark:group-has-[[data-state=checked]]:text-blue-100">{i18n.t.newGameDialog.enableMemes}</p>
-							<p class="text-muted-foreground text-sm group-has-[[data-state=checked]]:text-blue-700 dark:group-has-[[data-state=checked]]:text-blue-300">{i18n.t.newGameDialog.memesDescription}</p>
+							<p
+								class="text-sm leading-none font-medium group-has-[[data-state=checked]]:text-blue-900 dark:group-has-[[data-state=checked]]:text-blue-100"
+							>
+								{i18n.t.newGameDialog.enableMemes}
+							</p>
+							<p
+								class="text-muted-foreground text-sm group-has-[[data-state=checked]]:text-blue-700 dark:group-has-[[data-state=checked]]:text-blue-300"
+							>
+								{i18n.t.newGameDialog.memesDescription}
+							</p>
 						</div>
 					</label>
 				</div>

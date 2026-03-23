@@ -29,7 +29,11 @@
 		class?: string;
 	};
 
-	let { variant = 'default', class: className, children }: Props & { children?: import('svelte').Snippet } = $props();
+	let {
+		variant = 'default',
+		class: className,
+		children
+	}: Props & { children?: import('svelte').Snippet } = $props();
 </script>
 
 <div class={cn(badgeVariants({ variant }), className)}>

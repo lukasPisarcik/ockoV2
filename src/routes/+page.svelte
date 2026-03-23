@@ -1,8 +1,28 @@
 <script lang="ts">
 	import { Alert, AlertDescription } from '$lib/components/ui/alert';
 	import { Button } from '$lib/components/ui/button';
-	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
-	import { Gamepad2, History, BarChart3, Play, Heart, Coffee, Github, AlertTriangle, Instagram, Linkedin, Copy, Check, Info } from 'lucide-svelte';
+	import {
+		Card,
+		CardContent,
+		CardDescription,
+		CardHeader,
+		CardTitle
+	} from '$lib/components/ui/card';
+	import {
+		Gamepad2,
+		History,
+		BarChart3,
+		Play,
+		Heart,
+		Coffee,
+		Github,
+		AlertTriangle,
+		Instagram,
+		Linkedin,
+		Copy,
+		Check,
+		Info
+	} from 'lucide-svelte';
 	import NewGameDialog from '$lib/components/NewGameDialog.svelte';
 	import WelcomeDialog from '$lib/components/WelcomeDialog.svelte';
 	import { getI18n } from '$lib/i18n';
@@ -148,11 +168,7 @@
 				{i18n.t.about.creatorDescription} <strong>{i18n.t.about.creatorName}</strong>
 			</p>
 			<div class="flex flex-wrap gap-2">
-				<a
-					href="https://github.com/lukasPisarcik"
-					target="_blank"
-					rel="noopener noreferrer"
-				>
+				<a href="https://github.com/lukasPisarcik" target="_blank" rel="noopener noreferrer">
 					<Button variant="outline" size="sm" class="gap-2">
 						<Github class="h-4 w-4" />
 						GitHub

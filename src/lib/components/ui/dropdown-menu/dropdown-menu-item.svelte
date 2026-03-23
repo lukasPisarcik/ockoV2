@@ -8,7 +8,12 @@
 		onclick?: () => void;
 	};
 
-	let { class: className, disabled = false, onclick, children }: Props & { children?: import('svelte').Snippet } = $props();
+	let {
+		class: className,
+		disabled = false,
+		onclick,
+		children
+	}: Props & { children?: import('svelte').Snippet } = $props();
 </script>
 
 <DropdownMenuPrimitive.Item

@@ -11,7 +11,7 @@ export class GameStore {
 	showMeme = $state(false);
 	memeType = $state<MemeType>('BANK');
 	memePlayerName = $state<string>('');
-	
+
 	// Track which milestones have been shown to avoid repeating
 	private shownMilestones = new Set<string>();
 

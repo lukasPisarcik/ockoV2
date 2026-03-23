@@ -17,7 +17,9 @@ export default defineSchema({
 		endedAt: v.optional(v.number()),
 		isActive: v.boolean(),
 		enableMemes: v.optional(v.boolean())
-	}).index('by_user', ['userId']).index('by_user_active', ['userId', 'isActive']),
+	})
+		.index('by_user', ['userId'])
+		.index('by_user_active', ['userId', 'isActive']),
 
 	players: defineTable({
 		gameId: v.id('games'),

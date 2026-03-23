@@ -1,6 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
+	import {
+		Card,
+		CardContent,
+		CardDescription,
+		CardHeader,
+		CardTitle
+	} from '$lib/components/ui/card';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
 	import type { GameWithPlayers } from '$lib/schemas';
@@ -49,7 +55,7 @@
 		if (!convex) return;
 
 		unsubscribe = convex.onUpdate(api.games.listByUser, { userId: user.userId }, (result) => {
-			games = (result || []).map(g => ({
+			games = (result || []).map((g) => ({
 				...g,
 				enableMemes: g.enableMemes ?? true
 			}));
@@ -68,7 +74,10 @@
 		});
 	}
 
-	function getGameResult(game: GameWithPlayers): { label: string; variant: 'default' | 'secondary' | 'destructive' } {
+	function getGameResult(game: GameWithPlayers): {
+		label: string;
+		variant: 'default' | 'secondary' | 'destructive';
+	} {
 		const totalPlayerValue = game.players.reduce((sum, p) => sum + p.value, 0);
 		if (totalPlayerValue > 0) {
 			return { label: `+${totalPlayerValue}€`, variant: 'default' };
@@ -118,7 +127,8 @@
 							</span>
 							<span class="flex items-center gap-1">
 								<Users class="h-3 w-3" />
-								{game.players.length} {i18n.t.history.players}
+								{game.players.length}
+								{i18n.t.history.players}
 							</span>
 							{#if !game.isActive}
 								<span class="flex items-center gap-1">
@@ -133,9 +143,7 @@
 					<CardContent>
 						<div class="flex flex-wrap gap-2">
 							{#each game.players as player}
-								<div
-									class="flex items-center gap-2 rounded-md bg-muted px-3 py-1.5 text-sm"
-								>
+								<div class="flex items-center gap-2 rounded-md bg-muted px-3 py-1.5 text-sm">
 									<span class="font-medium">{player.name}</span>
 									<span
 										class:text-green-600={player.value > 0}

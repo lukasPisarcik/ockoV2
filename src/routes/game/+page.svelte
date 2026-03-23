@@ -190,10 +190,7 @@
 	{:else if gameStore.game}
 		<!-- Bank Display (Collapsible) -->
 		<Card>
-			<button
-				class="w-full text-left"
-				onclick={() => (isBankExpanded = !isBankExpanded)}
-			>
+			<button class="w-full text-left" onclick={() => (isBankExpanded = !isBankExpanded)}>
 				<div class="flex flex-row items-center justify-between px-4 sm:px-6 py-2 sm:py-3">
 					<div class="flex items-center gap-2 sm:gap-3">
 						<span class="text-base font-semibold tracking-tight">{i18n.t.game.bank}</span>
@@ -205,7 +202,8 @@
 							<span
 								class="text-sm font-semibold"
 								class:text-green-600={gameStore.game.currentBank > gameStore.game.initialBank * 0.5}
-								class:text-yellow-600={gameStore.game.currentBank <= gameStore.game.initialBank * 0.5 &&
+								class:text-yellow-600={gameStore.game.currentBank <=
+									gameStore.game.initialBank * 0.5 &&
 									gameStore.game.currentBank > gameStore.game.initialBank * 0.2}
 								class:text-red-600={gameStore.game.currentBank <= gameStore.game.initialBank * 0.2}
 							>
@@ -215,7 +213,8 @@
 					</div>
 					<div class="flex items-center gap-3">
 						<span class="text-sm text-muted-foreground">
-							{i18n.t.game.round} {gameStore.game.currentRound ?? 1}
+							{i18n.t.game.round}
+							{gameStore.game.currentRound ?? 1}
 						</span>
 						{#if isBankExpanded}
 							<ChevronUp class="h-4 w-4 text-muted-foreground shrink-0" />
@@ -238,7 +237,8 @@
 							<p
 								class="text-xl font-bold"
 								class:text-green-600={gameStore.game.currentBank > gameStore.game.initialBank * 0.5}
-								class:text-yellow-600={gameStore.game.currentBank <= gameStore.game.initialBank * 0.5 &&
+								class:text-yellow-600={gameStore.game.currentBank <=
+									gameStore.game.initialBank * 0.5 &&
 									gameStore.game.currentBank > gameStore.game.initialBank * 0.2}
 								class:text-red-600={gameStore.game.currentBank <= gameStore.game.initialBank * 0.2}
 							>
@@ -253,7 +253,12 @@
 							<RotateCcw class="h-4 w-4 mr-2" />
 							{i18n.t.game.reset}
 						</Button>
-						<Button variant="outline" size="sm" class="flex-1" onclick={() => (showEditDialog = true)}>
+						<Button
+							variant="outline"
+							size="sm"
+							class="flex-1"
+							onclick={() => (showEditDialog = true)}
+						>
 							<Settings class="h-4 w-4 mr-2" />
 							{i18n.t.game.edit}
 						</Button>
@@ -290,7 +295,12 @@
 		/>
 
 		<!-- Meme Popup -->
-		<MemePopup bind:open={showMemePopup} memeType={currentMeme} playerName={gameStore.memePlayerName} onClose={dismissMeme} />
+		<MemePopup
+			bind:open={showMemePopup}
+			memeType={currentMeme}
+			playerName={gameStore.memePlayerName}
+			onClose={dismissMeme}
+		/>
 	{:else}
 		<!-- No Game State -->
 		<Card class="text-center py-12">

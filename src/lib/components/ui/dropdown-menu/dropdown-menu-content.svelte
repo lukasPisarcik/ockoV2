@@ -8,7 +8,12 @@
 		sideOffset?: number;
 	};
 
-	let { class: className, align = 'center', sideOffset = 4, children }: Props & { children?: import('svelte').Snippet } = $props();
+	let {
+		class: className,
+		align = 'center',
+		sideOffset = 4,
+		children
+	}: Props & { children?: import('svelte').Snippet } = $props();
 </script>
 
 <DropdownMenuPrimitive.Portal>

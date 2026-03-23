@@ -17,7 +17,8 @@ export const translations = {
 			createOrContinue: 'Create a new game or continue previous one',
 			newGame: 'New Game',
 			continue: 'Continue',
-			playerNamesTip: 'Use the same player names across games for accurate statistics. "John" and "Johnny" are tracked as different players.'
+			playerNamesTip:
+				'Use the same player names across games for accurate statistics. "John" and "Johnny" are tracked as different players.'
 		},
 		// Game page
 		game: {
@@ -173,7 +174,8 @@ export const translations = {
 			createOrContinue: 'Vytvor novu hru alebo pokracuj v predchadzajucej',
 			newGame: 'Nova hra',
 			continue: 'Pokracovat',
-			playerNamesTip: 'Pouzivaj rovnake mena hracov vo vsetkych hrach pre presne statistiky. "Jano" a "Janko" su evidovani ako rozni hraci.'
+			playerNamesTip:
+				'Pouzivaj rovnake mena hracov vo vsetkych hrach pre presne statistiky. "Jano" a "Janko" su evidovani ako rozni hraci.'
 		},
 		// Game page
 		game: {

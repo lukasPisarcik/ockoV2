@@ -8,7 +8,11 @@
 		class?: string;
 	};
 
-	let { side = 'left', class: className, children }: Props & { children?: import('svelte').Snippet } = $props();
+	let {
+		side = 'left',
+		class: className,
+		children
+	}: Props & { children?: import('svelte').Snippet } = $props();
 
 	const sideVariants = {
 		left: 'inset-y-0 left-0 h-full w-3/4 max-w-sm border-r',
@@ -19,15 +23,9 @@
 </script>
 
 <SheetPrimitive.Portal>
-	<SheetPrimitive.Overlay
-		class="fixed inset-0 z-50 bg-black/50"
-	/>
+	<SheetPrimitive.Overlay class="fixed inset-0 z-50 bg-black/50" />
 	<SheetPrimitive.Content
-		class={cn(
-			'fixed z-50 gap-4 bg-popover p-6 shadow-lg',
-			sideVariants[side],
-			className
-		)}
+		class={cn('fixed z-50 gap-4 bg-popover p-6 shadow-lg', sideVariants[side], className)}
 	>
 		{@render children?.()}
 		<SheetPrimitive.Close

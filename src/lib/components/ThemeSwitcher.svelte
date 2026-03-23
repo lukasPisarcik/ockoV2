@@ -8,12 +8,7 @@
 	const i18n = getI18n();
 </script>
 
-<Button
-	variant="ghost"
-	size="icon"
-	onclick={() => theme.toggle()}
-	title={i18n.t.common.theme}
->
+<Button variant="ghost" size="icon" onclick={() => theme.toggle()} title={i18n.t.common.theme}>
 	{#if theme.theme === 'light'}
 		<Sun class="h-4 w-4" />
 	{:else}

@@ -61,7 +61,10 @@ export class UserStore {
 			if (existingUser) {
 				this.userId = existingUser._id;
 				this.userName = existingUser.name ?? null;
-				log.info({ initId, userId: existingUser._id, userName: existingUser.name }, 'UserStore: User loaded');
+				log.info(
+					{ initId, userId: existingUser._id, userName: existingUser.name },
+					'UserStore: User loaded'
+				);
 			} else {
 				log.info({ initId, deviceId }, 'UserStore: No existing user, waiting for name');
 			}

@@ -6,7 +6,11 @@
 		class?: string;
 	};
 
-	let { for: htmlFor, class: className, children }: Props & { children?: import('svelte').Snippet } = $props();
+	let {
+		for: htmlFor,
+		class: className,
+		children
+	}: Props & { children?: import('svelte').Snippet } = $props();
 </script>
 
 <label

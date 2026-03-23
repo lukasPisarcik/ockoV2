@@ -20,7 +20,7 @@ export const GameSchema = z.object({
 	userId: z.string(),
 	initialBank: z.number(),
 	currentBank: z.number(),
-	currentRound: z.number().default(1),
+	currentRound: z.number().optional(),
 	startedAt: z.number(),
 	endedAt: z.number().optional(),
 	isActive: z.boolean(),

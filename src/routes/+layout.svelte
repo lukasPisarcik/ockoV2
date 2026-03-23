@@ -45,7 +45,9 @@
 
 <div class="min-h-dvh flex flex-col">
 	<!-- Header -->
-	<header class="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+	<header
+		class="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+	>
 		<div class="flex h-14 items-center justify-between px-4 max-w-screen-lg mx-auto w-full">
 			<a href="/" class="flex items-center gap-2">
 				<img src="/logo.png" alt="Ocko" class="h-8 w-8" />
@@ -56,9 +58,9 @@
 			<nav class="hidden md:flex items-center space-x-1">
 				{#each navItems as item}
 					<a href={item.href}>
-						<Button 
-							variant={$page.url.pathname === item.href ? 'secondary' : 'ghost'} 
-							size="sm" 
+						<Button
+							variant={$page.url.pathname === item.href ? 'secondary' : 'ghost'}
+							size="sm"
 							class="gap-2"
 						>
 							<item.icon class="h-4 w-4" />
@@ -91,8 +93,8 @@
 			<nav class="flex flex-col gap-2 mt-6">
 				{#each navItems as item}
 					<a href={item.href}>
-						<Button 
-							variant={$page.url.pathname === item.href ? 'secondary' : 'ghost'} 
+						<Button
+							variant={$page.url.pathname === item.href ? 'secondary' : 'ghost'}
 							class="w-full justify-start gap-3"
 						>
 							<item.icon class="h-5 w-5" />

@@ -238,9 +238,8 @@ export const update = mutation({
 		}
 
 		// Add new players
-		const maxPosition = currentPlayers.length > 0 
-			? Math.max(...currentPlayers.map((p) => p.position)) 
-			: -1;
+		const maxPosition =
+			currentPlayers.length > 0 ? Math.max(...currentPlayers.map((p) => p.position)) : -1;
 		let newPosition = maxPosition + 1;
 
 		for (const name of args.playerNames) {

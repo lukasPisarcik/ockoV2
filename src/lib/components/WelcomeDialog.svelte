@@ -47,7 +47,13 @@
 	}
 </script>
 
-<Drawer.Root bind:open dismissible={false} onOpenChange={(isOpen) => { if (!isOpen && !user.userName) open = true; }}>
+<Drawer.Root
+	bind:open
+	dismissible={false}
+	onOpenChange={(isOpen) => {
+		if (!isOpen && !user.userName) open = true;
+	}}
+>
 	<Drawer.Content>
 		<div class="mx-auto w-full max-w-sm pb-safe">
 			<Drawer.Header class="text-center">
