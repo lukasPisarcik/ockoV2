@@ -107,6 +107,7 @@ export const create = mutation({
 			userId: args.userId,
 			initialBank: args.initialBank,
 			currentBank: args.initialBank,
+			currentRound: 1,
 			startedAt: Date.now(),
 			isActive: true,
 			enableMemes: args.enableMemes ?? true
@@ -155,7 +156,7 @@ export const endGame = mutation({
 });
 
 /**
- * Reset a game (set all player values to 0)
+ * Reset a game (set all player values to 0 and round to 1)
  */
 export const reset = mutation({
 	args: { id: v.id('games') },
@@ -163,9 +164,10 @@ export const reset = mutation({
 		const game = await ctx.db.get(args.id);
 		if (!game) throw new Error('Game not found');
 
-		// Reset current bank
+		// Reset current bank and round
 		await ctx.db.patch(args.id, {
-			currentBank: game.initialBank
+			currentBank: game.initialBank,
+			currentRound: 1
 		});
 
 		// Reset all player values
@@ -177,6 +179,21 @@ export const reset = mutation({
 		for (const player of players) {
 			await ctx.db.patch(player._id, { value: 0 });
 		}
+	}
+});
+
+/**
+ * Advance to the next round
+ */
+export const nextRound = mutation({
+	args: { id: v.id('games') },
+	handler: async (ctx, args) => {
+		const game = await ctx.db.get(args.id);
+		if (!game) throw new Error('Game not found');
+
+		await ctx.db.patch(args.id, {
+			currentRound: (game.currentRound ?? 1) + 1
+		});
 	}
 });
 

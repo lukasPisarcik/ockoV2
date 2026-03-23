@@ -12,6 +12,7 @@ export default defineSchema({
 		userId: v.id('users'),
 		initialBank: v.number(),
 		currentBank: v.number(),
+		currentRound: v.optional(v.number()),
 		startedAt: v.number(),
 		endedAt: v.optional(v.number()),
 		isActive: v.boolean(),

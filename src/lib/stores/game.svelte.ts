@@ -22,7 +22,14 @@ export class GameStore {
 		const initId = crypto.randomUUID();
 		log.info({ initId, gameId: game?._id }, 'GameStore: Initializing');
 
-		this.game = game;
+		if (game) {
+			this.game = {
+				...game,
+				currentRound: game.currentRound ?? 1
+			};
+		} else {
+			this.game = null;
+		}
 		this.checkMemeConditions();
 	}
 
@@ -126,8 +133,18 @@ export class GameStore {
 
 		this.game.players.forEach((p) => (p.value = 0));
 		this.game.currentBank = this.game.initialBank;
+		this.game.currentRound = 1;
 		this.showMeme = false;
 		this.shownMilestones.clear();
+	}
+
+	/**
+	 * Advance to the next round
+	 */
+	nextRound() {
+		if (!this.game) return;
+
+		this.game.currentRound = (this.game.currentRound ?? 1) + 1;
 	}
 
 	/**

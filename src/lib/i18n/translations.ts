@@ -29,7 +29,9 @@ export const translations = {
 			remaining: 'Remaining',
 			players: 'Players',
 			noActiveGame: 'No active game',
-			createNewGame: 'Create new game'
+			createNewGame: 'Create new game',
+			round: 'Round',
+			nextRound: 'Next Round'
 		},
 		// New game dialog
 		newGameDialog: {
@@ -183,7 +185,9 @@ export const translations = {
 			remaining: 'Zostatok',
 			players: 'Hraci',
 			noActiveGame: 'Ziadna aktivna hra',
-			createNewGame: 'Vytvorit novu hru'
+			createNewGame: 'Vytvorit novu hru',
+			round: 'Kolo',
+			nextRound: 'Dalsie kolo'
 		},
 		// New game dialog
 		newGameDialog: {

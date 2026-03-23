@@ -13,7 +13,7 @@
 	import { api } from '@convex/_generated/api';
 	import type { MemeType } from '$lib/schemas';
 	import type { Id } from '@convex/_generated/dataModel';
-	import { RotateCcw, Settings, Loader2, ChevronDown, ChevronUp } from 'lucide-svelte';
+	import { RotateCcw, Settings, Loader2, ChevronDown, ChevronUp, SkipForward } from 'lucide-svelte';
 	import { log } from '$lib/utils';
 	import { getI18n } from '$lib/i18n';
 
@@ -128,6 +128,27 @@
 		}
 	}
 
+	async function handleNextRound() {
+		if (!gameStore.game) return;
+
+		const convex = getConvexClient();
+		if (!convex) return;
+
+		const initId = crypto.randomUUID();
+		log.info({ initId }, 'GamePage: Advancing to next round');
+
+		// Optimistic update
+		gameStore.nextRound();
+
+		try {
+			await convex.mutation(api.games.nextRound, {
+				id: gameStore.game._id as Id<'games'>
+			});
+		} catch (e) {
+			log.error({ initId, error: e }, 'GamePage: Failed to advance round');
+		}
+	}
+
 	async function handleEditSubmit(bank: number, playerNames: string[], enableMemes: boolean) {
 		if (!gameStore.game) return;
 
@@ -192,11 +213,16 @@
 							</span>
 						{/if}
 					</div>
-					{#if isBankExpanded}
-						<ChevronUp class="h-4 w-4 text-muted-foreground shrink-0" />
-					{:else}
-						<ChevronDown class="h-4 w-4 text-muted-foreground shrink-0" />
-					{/if}
+					<div class="flex items-center gap-3">
+						<span class="text-sm text-muted-foreground">
+							{i18n.t.game.round} {gameStore.game.currentRound ?? 1}
+						</span>
+						{#if isBankExpanded}
+							<ChevronUp class="h-4 w-4 text-muted-foreground shrink-0" />
+						{:else}
+							<ChevronDown class="h-4 w-4 text-muted-foreground shrink-0" />
+						{/if}
+					</div>
 				</div>
 			</button>
 			{#if isBankExpanded}
@@ -232,6 +258,10 @@
 							{i18n.t.game.edit}
 						</Button>
 					</div>
+					<Button variant="default" size="sm" class="w-full" onclick={handleNextRound}>
+						<SkipForward class="h-4 w-4 mr-2" />
+						{i18n.t.game.nextRound}
+					</Button>
 				</CardContent>
 			{/if}
 		</Card>
